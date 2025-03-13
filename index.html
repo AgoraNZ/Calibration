@@ -33,7 +33,7 @@
     label { color: #000; margin-top: 10px; }
     button {
       background-color: #FFD700;
-      color: #000; /* Button text now black */
+      color: #000;
       border: none;
       padding: 10px 20px;
       cursor: pointer;
@@ -253,7 +253,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.9 (Agora)</div>
+    <div class="version">Version 7.0 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -836,7 +836,7 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Flow Meters Data with extra calibration info if provided
+      // Process Flow Meters Data with a second row always added
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": "acid-flow",
@@ -849,21 +849,18 @@
          const physical = fd.get(prefix + "-physical") || "";
          const system = fd.get(prefix + "-system") || "";
          flowMeters.push([meter, physical + " ml", system + " ml"]);
-         // Check for extra calibration info regardless of tolerance:
-         let pulseOld = fd.get(prefix + "-pulse-old") || "";
-         let pulseNew = fd.get(prefix + "-pulse-new") || "";
-         let newTestPhysical = fd.get(prefix + "-new-test-physical") || "";
-         let newSystemResult = fd.get(prefix + "-new-system-result") || "";
-         if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
-            let extraDetails = "";
-            if(pulseOld) extraDetails += "Pulse Old: " + pulseOld;
-            if(pulseNew) extraDetails += (extraDetails ? ", " : "") + "Pulse New: " + pulseNew;
-            let extraDetails2 = "";
-            if(newTestPhysical) extraDetails2 += "Test Physical: " + newTestPhysical;
-            if(newSystemResult) extraDetails2 += (extraDetails2 ? ", " : "") + "System Result: " + newSystemResult;
-            // Use a non-empty space in the first column so the row appears directly under the main row.
-            flowMeters.push([" ", extraDetails, extraDetails2]);
-         }
+         const pulseOld = fd.get(prefix + "-pulse-old") || "";
+         const pulseNew = fd.get(prefix + "-pulse-new") || "";
+         const newTestPhysical = fd.get(prefix + "-new-test-physical") || "";
+         const newSystemResult = fd.get(prefix + "-new-system-result") || "";
+         let extraDetailsLeft = "";
+         let extraDetailsRight = "";
+         if(pulseOld) extraDetailsLeft += "Pulse Old: " + pulseOld;
+         if(pulseNew) extraDetailsLeft += (extraDetailsLeft ? ", " : "") + "Pulse New: " + pulseNew;
+         if(newTestPhysical) extraDetailsRight += "Test Physical: " + newTestPhysical;
+         if(newSystemResult) extraDetailsRight += (extraDetailsRight ? ", " : "") + "System Result: " + newSystemResult;
+         // Always add a second row; cells will be empty if no extra data provided.
+         flowMeters.push(["", extraDetailsLeft, extraDetailsRight]);
       }
       
       // Function to finalize and output PDF
@@ -948,7 +945,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table (with extra calibration details row if provided)
+          // Flow Meters Table with always-visible second row
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
