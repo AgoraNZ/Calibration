@@ -275,7 +275,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.1 (Agora)</div>
+    <div class="version">Version 7.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -849,8 +849,8 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table – 4 columns with five rows (left: Dairy Company, Dairy Number, Address, Customer Name, Visit Date; right: Visit Type, Inspection Start Time, Inspection End Time, Inspection Completed By, Call Type)
-      const pageWidth = 595; // Approximate A4 width in points
+      // Build Farm Details Table – 4 columns (left side: Dairy Company, Dairy Number, Address, Customer Name, Visit Date; right side: Visit Type, Inspection Start Time, Inspection End Time, Inspection Completed By, Call Type)
+      const pageWidth = 595; // Approximate A4 width (points)
       const leftColLabelWidth = pageWidth * 0.15;
       const leftColValueWidth = pageWidth * 0.20;
       const rightColLabelWidth = pageWidth * 0.20;
@@ -900,7 +900,7 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with calibration extra row if calibration info exists.
+      // Process Flow Meters Data with calibration extra row (if any calibration info exists)
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -928,7 +928,7 @@
          }
       }
       
-      // Wait for all image conversion promises before finalizing the PDF
+      // Wait for all image conversion promises
       Promise.all(imagePromises).then(() => {
         finalizePDF();
       }).catch(() => {
@@ -940,7 +940,7 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Get the new logo from the specified location
+        // Use new logo from the specified location
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -967,7 +967,7 @@
         });
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table – same style as checklist table
+          // Farm Details Table – same style as checklist table (grid, blue header) with fontSize 10
           pdf.autoTable({
             startY: currentY,
             head: [["Farm Details", "", "", ""]],
@@ -1079,31 +1079,31 @@
             });
           }
           
-          // Use the Visit Date field as the file name (reformat from yyyy-mm-dd to dd-mm-yyyy)
-          let visitDate = fd.get("visit-date");
-          let formattedVisitDate = "";
-          if (visitDate) {
-            const parts = visitDate.split("-");
-            formattedVisitDate = parts[2] + "-" + parts[1] + "-" + parts[0];
-          } else {
-            formattedVisitDate = new Date().toISOString().split("T")[0];
-          }
-          const fileName = `${formattedVisitDate}.pdf`;
-          
-          // Upload PDF to Agora Customers folder
-          try {
-            await uploadSinglePDFCustomer(dairyNumber, fileName, pdf.output("blob"));
-            console.log("PDF uploaded to Agora Customers folder successfully");
-          } catch(e) {
-            console.error("PDF upload to Agora Customers folder failed:", e);
-            db.pdfQueue.add({ dairyNumber, fileName, pdfBlob: pdf.output("blob"), uploaded: false, target: "customers" });
-          }
-          
-          db.forms.delete(fd.get("dairy-number"));
-          pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
-          uploadPendingPDFs();
-          clearEntireForm();
-          location.reload();
+          // Now, wait for the PDF upload to complete before saving and reloading.
+          (async function(){
+            const pdfBlob = pdf.output("blob");
+            const visitDate = fd.get("visit-date");
+            if (!visitDate) {
+              alert("Visit Date is required.");
+              return;
+            }
+            // Convert from "YYYY-MM-DD" to "DD-MM-YY"
+            const dateParts = visitDate.split("-");
+            const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
+            const fileName = `${fd.get("dairy-number")}-form-${formattedVisitDate}.pdf`;
+            try {
+              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora Customers folder successfully");
+            } catch(e) {
+              console.error("PDF upload to Agora Customers folder failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+            }
+            db.forms.delete(fd.get("dairy-number"));
+            pdf.save(fileName);
+            uploadPendingPDFs();
+            clearEntireForm();
+            location.reload();
+          })();
         }
       }
     }
@@ -1141,7 +1141,7 @@
         const fileSnapshot = await folderRef.listAll();
         fileSnapshot.items.forEach(fileRef => {
           const fileName = fileRef.name;
-          const dateMatch = fileName.match(/(\d{2}-\d{2}-\d{4})/);
+          const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
           const displayName = dateMatch ? dateMatch[0] : fileName;
           const fileLink = document.createElement("a");
           fileLink.textContent = displayName;
