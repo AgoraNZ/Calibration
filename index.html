@@ -32,7 +32,7 @@
     /* Ensure labels remain black */
     label { color: #000; margin-top: 10px; }
     button {
-      background-color: #FF851B;
+      background-color: #FFD700;
       color: #fff;
       border: none;
       padding: 10px 20px;
@@ -41,7 +41,7 @@
       margin: 20px auto;
       border-radius: 5px;
     }
-    button:hover { background-color: #FF4136; }
+    button:hover { background-color: #E6C200; }
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
@@ -168,12 +168,6 @@
         <div id="silo-checklist"></div>
       </div>
       
-      <!-- Additional Checks Section -->
-      <div class="section mb-4">
-        <h2>Additional Checks</h2>
-        <div id="additional-checks"></div>
-      </div>
-      
       <!-- New Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
@@ -259,7 +253,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.7 (Agora)</div>
+    <div class="version">Version 6.8 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -537,129 +531,6 @@
       });
     }
     
-    async function createAdditionalChecks() {
-      const container = document.getElementById("additional-checks");
-      container.innerHTML = "";
-      // Teat Spray Check
-      const teatSprayContainer = document.createElement("div");
-      teatSprayContainer.classList.add("checklist-item");
-      const labelTeat = document.createElement("label");
-      labelTeat.textContent = "Teat Spray Check";
-      teatSprayContainer.appendChild(labelTeat);
-      const statusSelectTeat = document.createElement("select");
-      statusSelectTeat.classList.add("form-select");
-      statusSelectTeat.name = "status-teat-spray-check";
-      statusSelectTeat.innerHTML = `
-        <option value="ok">OK</option>
-        <option value="attention-required">Attention Required</option>
-        <option value="na">N/A</option>
-        <option value="not-checked">Not Checked</option>
-      `;
-      teatSprayContainer.appendChild(statusSelectTeat);
-      const commentsInputTeat = document.createElement("input");
-      commentsInputTeat.type = "text";
-      commentsInputTeat.classList.add("form-control");
-      commentsInputTeat.name = "comments-teat-spray-check";
-      commentsInputTeat.placeholder = "Comments";
-      commentsInputTeat.setAttribute("spellcheck", "true");
-      commentsInputTeat.setAttribute("autocorrect", "off");
-      teatSprayContainer.appendChild(commentsInputTeat);
-      for (let i = 0; i < 2; i++) {
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.classList.add("form-control", "image-upload");
-        teatSprayContainer.appendChild(fileInput);
-        const preview = document.createElement("img");
-        preview.classList.add("image-preview");
-        teatSprayContainer.appendChild(preview);
-      }
-      statusSelectTeat.addEventListener("change", () => {
-        const fileInputs = teatSprayContainer.querySelectorAll('input[type="file"]');
-        fileInputs.forEach(inp => {
-          inp.style.display = (statusSelectTeat.value === "attention-required") ? "block" : "none";
-        });
-      });
-      const ratioLabel = document.createElement("label");
-      ratioLabel.textContent = "Teat Spray Dilution Ratio:";
-      teatSprayContainer.appendChild(ratioLabel);
-      const ratioInput = document.createElement("input");
-      ratioInput.type = "text";
-      ratioInput.classList.add("form-control");
-      ratioInput.name = "teat-spray-dilution";
-      ratioInput.id = "teat-dilution";
-      ratioInput.setAttribute("list", "teat-dilution-list");
-      ratioInput.placeholder = "Type or select e.g. 1:5";
-      ratioInput.setAttribute("autocapitalize", "words");
-      ratioInput.setAttribute("autocorrect", "off");
-      ratioInput.setAttribute("spellcheck", "false");
-      teatSprayContainer.appendChild(ratioInput);
-      const ratioDataList = document.createElement("datalist");
-      ratioDataList.id = "teat-dilution-list";
-      teatSprayContainer.appendChild(ratioDataList);
-      const existingRatios = await db.teatSprayRatios.toArray();
-      const allRatios = ["1:4"];
-      existingRatios.forEach(r => { if (!allRatios.includes(r.ratio)) { allRatios.push(r.ratio); } });
-      ratioDataList.innerHTML = "";
-      allRatios.forEach(r => {
-        const opt = document.createElement("option");
-        opt.value = r;
-        ratioDataList.appendChild(opt);
-      });
-      ratioInput.addEventListener("blur", async () => {
-        ratioInput.value = toTitleCase(ratioInput.value.trim());
-        const typedRatio = ratioInput.value;
-        if (typedRatio && !allRatios.includes(typedRatio)) {
-          await db.teatSprayRatios.add({ ratio: typedRatio });
-          allRatios.push(typedRatio);
-          const newOpt = document.createElement("option");
-          newOpt.value = typedRatio;
-          ratioDataList.appendChild(newOpt);
-        }
-      });
-      container.appendChild(teatSprayContainer);
-      
-      // Chemical Check
-      const chemicalContainer = document.createElement("div");
-      chemicalContainer.classList.add("checklist-item");
-      const labelChemical = document.createElement("label");
-      labelChemical.textContent = "Chemical Check";
-      chemicalContainer.appendChild(labelChemical);
-      const statusSelectChemical = document.createElement("select");
-      statusSelectChemical.classList.add("form-select");
-      statusSelectChemical.name = "status-chemical-check";
-      statusSelectChemical.innerHTML = `
-        <option value="ok">OK</option>
-        <option value="attention-required">Attention Required</option>
-        <option value="na">N/A</option>
-        <option value="not-checked">Not Checked</option>
-      `;
-      chemicalContainer.appendChild(statusSelectChemical);
-      const commentsInputChemical = document.createElement("input");
-      commentsInputChemical.type = "text";
-      commentsInputChemical.classList.add("form-control");
-      commentsInputChemical.name = "comments-chemical-check";
-      commentsInputChemical.placeholder = "Comments";
-      commentsInputChemical.setAttribute("spellcheck", "true");
-      commentsInputChemical.setAttribute("autocorrect", "off");
-      chemicalContainer.appendChild(commentsInputChemical);
-      for (let i = 0; i < 2; i++) {
-        const fileInput = document.createElement("input");
-        fileInput.type = "file";
-        fileInput.classList.add("form-control", "image-upload");
-        chemicalContainer.appendChild(fileInput);
-        const preview = document.createElement("img");
-        preview.classList.add("image-preview");
-        chemicalContainer.appendChild(preview);
-      }
-      statusSelectChemical.addEventListener("change", () => {
-        const fileInputs = chemicalContainer.querySelectorAll('input[type="file"]');
-        fileInputs.forEach(inp => {
-          inp.style.display = (statusSelectChemical.value === "attention-required") ? "block" : "none";
-        });
-      });
-      container.appendChild(chemicalContainer);
-    }
-    
     /* New Temperature Sensor Item */
     function createTemperatureSensorItem() {
       const container = document.getElementById("temperature-sensors-container");
@@ -748,7 +619,6 @@
         const containers = [
           ...document.getElementById("health-safety-top").children,
           ...document.getElementById("checklist-items").children,
-          ...document.getElementById("additional-checks").children,
           ...document.getElementById("silo-checklist").children
         ];
         containers.forEach(container => {
@@ -811,7 +681,6 @@
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
-        ...document.getElementById("additional-checks").children,
         ...document.getElementById("silo-checklist").children
       ];
       const checklistItemsData = {};
@@ -920,7 +789,6 @@
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
-        ...document.getElementById("additional-checks").children,
         ...document.getElementById("silo-checklist").children
       ];
       const checklistData = [];
@@ -972,7 +840,7 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Flow Meters Data with corrected mapping
+      // Process Flow Meters Data with extra calibration details if applicable
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": "acid-flow",
@@ -985,6 +853,26 @@
          const physical = fd.get(prefix + "-physical") || "";
          const system = fd.get(prefix + "-system") || "";
          flowMeters.push([meter, physical + " ml", system + " ml"]);
+         if(physical !== "" && system !== ""){
+            let p = parseFloat(physical);
+            let s = parseFloat(system);
+            let tolerance = 0.05 * p;
+            if(Math.abs(p - s) > tolerance){
+               let pulseOld = fd.get(prefix + "-pulse-old") || "";
+               let pulseNew = fd.get(prefix + "-pulse-new") || "";
+               let newTestPhysical = fd.get(prefix + "-new-test-physical") || "";
+               let newSystemResult = fd.get(prefix + "-new-system-result") || "";
+               if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
+                  let extraDetails = "";
+                  if(pulseOld) extraDetails += "Pulse Old: " + pulseOld;
+                  if(pulseNew) extraDetails += (extraDetails ? ", " : "") + "Pulse New: " + pulseNew;
+                  let extraDetails2 = "";
+                  if(newTestPhysical) extraDetails2 += "Test Physical: " + newTestPhysical;
+                  if(newSystemResult) extraDetails2 += (extraDetails2 ? ", " : "") + "System Result: " + newSystemResult;
+                  flowMeters.push(["", extraDetails, extraDetails2]);
+               }
+            }
+         }
       }
       
       // Function to finalize and output PDF
@@ -1069,7 +957,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table
+          // Flow Meters Table with extra calibration details if applicable
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
@@ -1087,7 +975,6 @@
           // Attached Photos Section
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
-            // Check if enough space exists for the "Attached Photos:" header
             if (currentY + 20 > pageHeight) {
               pdf.addPage();
               currentY = 40;
@@ -1095,7 +982,6 @@
             pdf.text("Attached Photos:", 40, currentY);
             currentY += 20;
             photoStore.forEach(photoItem => {
-              // If not enough space for item title, add a new page
               if (currentY + 15 > pageHeight) {
                 pdf.addPage();
                 currentY = 40;
@@ -1109,7 +995,6 @@
                   const imgProps = pdf.getImageProperties(img);
                   const imgWidth = 100;
                   const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                  // If adding the image exceeds the page, add a new page
                   if (currentY + imgHeight > pageHeight) {
                     pdf.addPage();
                     currentY = 40;
@@ -1200,7 +1085,7 @@
         const backBtn = document.createElement("button");
         backBtn.textContent = "Back to Records";
         backBtn.className = "back-button";
-        backBtn.addEventListener("click", goBackToRecords);
+        backBtn.addEventListener("click", loadAllRecords);
         recordList.appendChild(backBtn);
       } catch (err) {
         console.error("Error fetching record files:", err);
@@ -1221,8 +1106,6 @@
       document.getElementById("form-container").style.display = "block";
       document.getElementById("record-container").style.display = "none";
     }
-    
-    function goBackToRecords() { loadAllRecords(); }
     
     function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
       const physicalInput = document.getElementById(physicalId);
@@ -1249,7 +1132,6 @@
       createHealthSafetyItems("health-safety-top");
       createChecklistItems();
       createSiloChecklist();
-      await createAdditionalChecks();
       createTemperatureSensorItem();
       const form = document.getElementById("hygiene-checklist-form");
       form.addEventListener("input", saveFormData);
