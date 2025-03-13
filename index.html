@@ -849,9 +849,8 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table – 4 columns (left: Dairy Company, Dairy Number, Address, Customer Name, Visit Date; right: Visit Type, Inspection Start Time, Inspection End Time, Inspection Completed By, Call Type)
-      const pageWidth = 595; // Approximate A4 width in points
-      // Adjust column widths so the right side is pushed further right
+      // Build Farm Details Table – 4 columns (left side: Dairy Company, Dairy Number, Address, Customer Name, Visit Date; right side: Visit Type, Inspection Start Time, Inspection End Time, Inspection Completed By, Call Type)
+      const pageWidth = 595; // Approximate A4 width (points)
       const leftColLabelWidth = pageWidth * 0.15;
       const leftColValueWidth = pageWidth * 0.20;
       const rightColLabelWidth = pageWidth * 0.20;
@@ -929,7 +928,7 @@
          }
       }
       
-      // Wait for all image promises to resolve before finalizing the PDF
+      // Wait for all image conversion promises
       Promise.all(imagePromises).then(() => {
         finalizePDF();
       }).catch(() => {
@@ -941,7 +940,7 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Get the new logo from the specified location
+        // Use new logo from the specified location
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -968,7 +967,7 @@
         });
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table with header row (blue) and 4 columns.
+          // Farm Details Table – same style as checklist table (grid, blue header) with fontSize 10
           pdf.autoTable({
             startY: currentY,
             head: [["Farm Details", "", "", ""]],
@@ -1080,19 +1079,24 @@
             });
           }
           
-          // Upload PDF only to Agora Customers folder
-          const pdfBlob = pdf.output("blob");
-          const timestamp = new Date().toISOString().split("T")[0];
-          const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
-          uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob).catch(err => {
-            db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
-          });
-          
-          db.forms.delete(fd.get("dairy-number"));
-          pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
-          uploadPendingPDFs();
-          clearEntireForm();
-          location.reload();
+          // Now, wait for the PDF upload to complete before saving and reloading.
+          (async function(){
+            const pdfBlob = pdf.output("blob");
+            const timestamp = new Date().toISOString().split("T")[0];
+            const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
+            try {
+              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora Customers folder successfully");
+            } catch(e) {
+              console.error("PDF upload to Agora Customers folder failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+            }
+            db.forms.delete(fd.get("dairy-number"));
+            pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
+            uploadPendingPDFs();
+            clearEntireForm();
+            location.reload();
+          })();
         }
       }
     }
