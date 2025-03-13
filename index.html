@@ -92,7 +92,7 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Use the new logo URL -->
+    <!-- Use new logo URL -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
@@ -752,7 +752,7 @@
       });
     }
     
-    // Save farm details JSON only to Agora Farm Details folder (separate from PDF upload)
+    // Save farm details JSON only to Agora Farm Details folder
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -805,7 +805,7 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Process checklist items and image conversion promises
+      // Process checklist items and image promises
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -849,12 +849,13 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table with 4 columns (labels bold) – same style as checklist table
-      const pageWidth = 595; // A4 width approx in points
+      // Build Farm Details Table – 4 columns (left: Dairy Company, Dairy Number, Address, Customer Name, Visit Date; right: Visit Type, Inspection Start Time, Inspection End Time, Inspection Completed By, Call Type)
+      const pageWidth = 595; // Approximate A4 width in points
+      // Adjust column widths so the right side is pushed further right
       const leftColLabelWidth = pageWidth * 0.15;
       const leftColValueWidth = pageWidth * 0.20;
-      const rightColLabelWidth = pageWidth * 0.15;
-      const rightColValueWidth = pageWidth * 0.25;
+      const rightColLabelWidth = pageWidth * 0.20;
+      const rightColValueWidth = pageWidth * 0.30;
       const farmDetailsRows = [
         [
           { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -888,7 +889,7 @@
         ]
       ];
       
-      // Process Temperature Measurement Data from new section
+      // Process Temperature Measurement Data
       const hotWaterTemp = fd.get("hot-water-temp") || "";
       const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
       const milkTemp = fd.get("milk-temp") || "";
@@ -900,7 +901,7 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with extra calibration row if calibration info exists.
+      // Process Flow Meters Data with calibration extra row (if any calibration info exists)
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -928,6 +929,7 @@
          }
       }
       
+      // Wait for all image promises to resolve before finalizing the PDF
       Promise.all(imagePromises).then(() => {
         finalizePDF();
       }).catch(() => {
@@ -939,7 +941,7 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Use new logo location from the specified bucket reference
+        // Get the new logo from the specified location
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -966,13 +968,13 @@
         });
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table with same style as checklist table (grid theme, blue header)
+          // Farm Details Table with header row (blue) and 4 columns.
           pdf.autoTable({
             startY: currentY,
-            head: [["Farm Details", ""]],
+            head: [["Farm Details", "", "", ""]],
             body: farmDetailsRows,
             theme: 'grid',
-            styles: { fontSize: 12, cellPadding: 5 },
+            styles: { fontSize: 10, cellPadding: 5 },
             headStyles: { fillColor: "#002B5C", textColor: "#fff" },
             columnStyles: {
               0: { cellWidth: leftColLabelWidth },
