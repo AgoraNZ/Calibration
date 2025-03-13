@@ -1,5 +1,5 @@
-// Update cache version with each release
-const CACHE_NAME = 'agora-form-cache-v6';
+// Update cache version for new release
+const CACHE_NAME = 'agora-form-cache-v8';
 
 const urlsToCache = [
   '/',
@@ -7,7 +7,7 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css',
   // Logo from "Agora Logo" folder
   'https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media',
-  // Firebase and additional libraries
+  // Firebase libraries and additional scripts
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js',
@@ -16,7 +16,7 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
 ];
 
-self.addEventListener('install', event => {
+self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -30,7 +30,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener('activate', function(event) {
   event.waitUntil(
     Promise.all([
       caches.keys().then(cacheNames =>
