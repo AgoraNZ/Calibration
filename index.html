@@ -276,7 +276,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 7.4 (Agora)</div>
+    <div class="version">Version 6.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -315,7 +315,7 @@
       forms: "dairyNumber",
       dairyCompanies: "++id, name",
       teatSprayRatios: "++id, ratio",
-      // Add a 'target' field for queued PDF uploads.
+      // pdfQueue now includes a target field ("customers" or "farm")
       pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
     });
     
@@ -768,7 +768,6 @@
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || ""
       };
-      // Upload the farm details JSON to both folders
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
         // Save to Agora Farm Details folder
@@ -828,14 +827,14 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Process checklist items (with photo note) and collect photos
+      // Process checklist items (with photo note) and collect photos using promises
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
         ...document.getElementById("silo-checklist").children
       ];
       const checklistData = [];
-      let pendingImages = 0;
+      let imagePromises = [];
       let photoStore = [];
       checklistContainers.forEach(item => {
         const labelEl = item.querySelector("label");
@@ -853,14 +852,7 @@
           comments += photoNote;
           const p = { itemName, images: [] };
           images.forEach((file, idx) => {
-            pendingImages++;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-              p.images[idx] = evt.target.result;
-              pendingImages--;
-              if (pendingImages === 0) finalizePDF();
-            };
-            reader.readAsDataURL(file);
+            imagePromises.push(convertFileToBase64(file).then(result => { p.images[idx] = result; }));
           });
           photoStore.push(p);
         }
@@ -879,8 +871,8 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table as a 4-column table (left and right sides)
-      const pageWidth = 595; // A4 width in points approximately
+      // Build Farm Details Table (4 columns, 5 rows)
+      const pageWidth = 595; // Approximate A4 width in points
       const leftColLabelWidth = pageWidth * 0.15;
       const leftColValueWidth = pageWidth * 0.20;
       const rightColLabelWidth = pageWidth * 0.15;
@@ -930,7 +922,7 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with extra calibration row (only if calibration info exists)
+      // Process Flow Meters Data with extra calibration row only if calibration info exists.
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -958,42 +950,46 @@
          }
       }
       
-      // Function to finalize and output PDF
+      // Wait for image conversion to complete
+      Promise.all(imagePromises).then(() => {
+        finalizePDF();
+      }).catch(() => {
+        finalizePDF();
+      });
+      
       function finalizePDF() {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         // Draw a larger, centered logo at the top
-        try {
-          storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL().then(url => {
-            fetch(url)
-              .then(res => res.blob())
-              .then(blob => convertFileToBase64(blob))
-              .then(logoBase64 => {
-                const img = new Image();
-                img.onload = function() {
-                  const fixedLogoWidth = 150;
-                  const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
-                  const x = (pageWidth - fixedLogoWidth) / 2;
-                  pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
-                  currentY = 40 + fixedLogoHeight + 20;
-                  addFarmDetailsAndTables(pdf);
-                };
-                img.src = logoBase64;
-              })
-              .catch(err => {
-                console.error("Logo error:", err);
+        storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL().then(url => {
+          fetch(url)
+            .then(res => res.blob())
+            .then(blob => convertFileToBase64(blob))
+            .then(logoBase64 => {
+              const img = new Image();
+              img.onload = function() {
+                const fixedLogoWidth = 150;
+                const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+                const x = (pageWidth - fixedLogoWidth) / 2;
+                pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
+                currentY = 40 + fixedLogoHeight + 20;
                 addFarmDetailsAndTables(pdf);
-              });
-          });
-        } catch (err) {
+              };
+              img.src = logoBase64;
+            })
+            .catch(err => {
+              console.error("Logo error:", err);
+              addFarmDetailsAndTables(pdf);
+            });
+        }).catch(err => {
           console.error("Logo error:", err);
           addFarmDetailsAndTables(pdf);
-        }
+        });
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table: 4 columns (label and value for left, label and value for right)
+          // Farm Details Table
           pdf.autoTable({
             startY: currentY,
             head: [],
@@ -1051,7 +1047,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table (with extra calibration row if calibration info exists)
+          // Flow Meters Table
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
@@ -1120,16 +1116,13 @@
             }
           });
           
+          // Delete local form record, save PDF to user, trigger pending uploads, and reload
           db.forms.delete(fd.get("dairy-number"));
           pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
           uploadPendingPDFs();
           clearEntireForm();
           location.reload();
         }
-      }
-      
-      if (pendingImages === 0) {
-        finalizePDF();
       }
     }
     
