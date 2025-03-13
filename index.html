@@ -7,7 +7,7 @@
   <title>Agora Reporting Form</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
-    /* Overall background set to #d2d7dd and text/colors as required */
+    /* Overall background and styling */
     body {
       background-color: #d2d7dd;
       color: #000;
@@ -27,15 +27,15 @@
       max-width: 800px;
       width: 100%;
     }
-    h1, h2 { 
-      color: #333; 
-      text-align: center; 
+    h1, h2 {
+      color: #333;
+      text-align: center;
     }
     h1 { margin-bottom: 40px; }
-    /* Ensure labels remain black */
-    label { 
-      color: #000; 
-      margin-top: 10px; 
+    /* Ensure labels are black */
+    label {
+      color: #000;
+      margin-top: 10px;
     }
     button {
       background-color: #FF851B;
@@ -51,7 +51,7 @@
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
-    /* On the form the logo remains 250px; in the PDF it will be rendered centered at 120pt width */
+    /* On the form, logo is 250px wide; in the PDF it will be rendered at 120pt */
     .logo { display: block; margin: 0 auto 20px; width: 250px; }
     .record-container {
       background-color: #fff;
@@ -81,7 +81,7 @@
       cursor: pointer;
     }
     .search-container { margin-bottom: 20px; }
-    /* Hide file uploads by default */
+    /* Hide file upload inputs and extra fields by default */
     .image-upload { display: none; }
     .image-preview {
       display: none;
@@ -90,7 +90,6 @@
       margin-top: 5px;
       border: 2px solid #ccc;
     }
-    /* Extra field containers hidden by default */
     .calibration-container,
     .temp-extra-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
   </style>
@@ -98,7 +97,7 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Form Logo (remains 250px on form) -->
+    <!-- Logo on form -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
@@ -181,7 +180,7 @@
         <div id="additional-checks"></div>
       </div>
       
-      <!-- New Temperature Sensors Section -->
+      <!-- Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
       </div>
@@ -394,7 +393,7 @@
       await checkOrCreateFormRecord();
     }
     
-    /* Create dynamic form sections */
+    /* Create Dynamic Form Sections */
     function createHealthSafetyItems(containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -724,7 +723,7 @@
       tempCommentsInput.classList.add("form-control");
       tempCommentsInput.name = "tempSensor-comments";
       extraContainer.appendChild(tempCommentsInput);
-      // Two photo uploads for sensor
+      // Two photo uploads
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -741,7 +740,7 @@
       container.appendChild(sensorItem);
     }
     
-    /* LOAD, CLEAR & SAVE Form Data */
+    /* LOAD, CLEAR & SAVE DATA */
     function loadFormDataFromRecord(record) {
       const data = record.formData || {};
       document.getElementById("dairy-number").value = record.dairyNumber;
@@ -998,7 +997,7 @@
         }
       }
       
-      // Process Flow Meters Data
+      // Process Flow Meters Data (using defined prefixes)
       const meters = [
         { name: "Acid Flow Meter", prefix: "acid-flow" },
         { name: "Chlor Alkali Flow Meter", prefix: "chlor-flow" },
@@ -1101,7 +1100,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section (add new pages as needed)
+          // Attached Photos Section – add new page if needed
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
             if (currentY + 40 > pageHeight) { pdf.addPage(); currentY = 40; }
