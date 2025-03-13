@@ -45,6 +45,7 @@
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
+    /* Use the new logo URL for both form and pdf */
     .logo { display: block; margin: 0 auto 20px; width: 250px; }
     .record-container {
       background-color: #fff;
@@ -91,8 +92,8 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Small Logo from "Agora Logo" folder -->
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
+    <!-- Use the new logo URL -->
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
       <!-- Farm Details Section -->
@@ -173,7 +174,6 @@
         <h2>Temperature Measurement</h2>
         <div class="mb-3">
           <label for="hot-water-temp">Hot Water Temp (°C):</label>
-          <!-- Changed type to text -->
           <input type="text" class="form-control" id="hot-water-temp" name="hot-water-temp">
         </div>
         <div class="mb-3">
@@ -182,7 +182,6 @@
         </div>
         <div class="mb-3">
           <label for="milk-temp">Milk Temp (°C):</label>
-          <!-- Changed type to text -->
           <input type="text" class="form-control" id="milk-temp" name="milk-temp">
         </div>
         <div class="mb-3">
@@ -315,7 +314,7 @@
       forms: "dairyNumber",
       dairyCompanies: "++id, name",
       teatSprayRatios: "++id, ratio",
-      // pdfQueue now includes a target field ("customers" or "farm")
+      // pdfQueue now includes a target field ("customers")
       pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
     });
     
@@ -432,7 +431,6 @@
       commentsInput.setAttribute("spellcheck", "true");
       commentsInput.setAttribute("autocorrect", "off");
       itemContainer.appendChild(commentsInput);
-      // Two file inputs hidden by default
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -613,7 +611,6 @@
       tempCommentsInput.classList.add("form-control");
       tempCommentsInput.name = "tempSensor-comments";
       extraContainer.appendChild(tempCommentsInput);
-      // Two photo uploads
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -701,7 +698,6 @@
       const form = document.getElementById("hygiene-checklist-form");
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      // Process checklist items with photo handling
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -732,7 +728,6 @@
       }
       data.checklistItems = checklistItemsData;
       
-      // Save Temperature Sensor data
       const tsContainer = document.getElementById("temperature-sensors-container");
       const tsItem = tsContainer.querySelector(".checklist-item");
       if (tsItem) {
@@ -757,6 +752,7 @@
       });
     }
     
+    // Save farm details JSON only to Agora Farm Details folder (separate from PDF upload)
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -770,15 +766,11 @@
       };
       const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
-        // Save to Agora Farm Details folder
         const storageRefFarm = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
         await storageRefFarm.put(jsonBlob);
-        // Also save to Agora Customers folder (as part of farm details)
-        const storageRefCust = storage.ref(`Agora Customers/${dairyNumber}/${dairyNumber}-FarmDetails.json`);
-        await storageRefCust.put(jsonBlob);
-        console.log("Farm details saved successfully to both folders.");
+        console.log("Farm details JSON saved to Agora Farm Details folder.");
       } catch (err) {
-        console.error("Error saving farm details:", err);
+        console.error("Error saving farm details JSON:", err);
       }
     }
     
@@ -792,12 +784,6 @@
             await db.pdfQueue.delete(pdfRecord.id);
             console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Customers.`);
           } catch(err){ console.error("Retry PDF upload to Customers failed:", err); }
-        } else if(pdfRecord.target === "farm"){
-          try{
-            await uploadSinglePDFFarm(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
-            await db.pdfQueue.delete(pdfRecord.id);
-            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Farm.`);
-          } catch(err){ console.error("Retry PDF upload to Farm failed:", err); }
         }
       }
     }
@@ -805,14 +791,6 @@
     function uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob) {
       return new Promise((resolve, reject) => {
         const uploadRef = storage.ref(`Agora Customers/${dairyNumber}/${fileName}`);
-        const task = uploadRef.put(pdfBlob);
-        task.on("state_changed", null, err => reject(err), () => resolve());
-      });
-    }
-    
-    function uploadSinglePDFFarm(dairyNumber, fileName, pdfBlob) {
-      return new Promise((resolve, reject) => {
-        const uploadRef = storage.ref(`Agora Farm Details/${dairyNumber}/${fileName}`);
         const task = uploadRef.put(pdfBlob);
         task.on("state_changed", null, err => reject(err), () => resolve());
       });
@@ -827,7 +805,7 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Process checklist items (with photo note) and collect photos using promises
+      // Process checklist items and image conversion promises
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -871,8 +849,8 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table (4 columns, 5 rows)
-      const pageWidth = 595; // Approximate A4 width in points
+      // Build Farm Details Table with 4 columns (labels bold) – same style as checklist table
+      const pageWidth = 595; // A4 width approx in points
       const leftColLabelWidth = pageWidth * 0.15;
       const leftColValueWidth = pageWidth * 0.20;
       const rightColLabelWidth = pageWidth * 0.15;
@@ -922,7 +900,7 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with extra calibration row only if calibration info exists.
+      // Process Flow Meters Data with extra calibration row if calibration info exists.
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -950,7 +928,6 @@
          }
       }
       
-      // Wait for image conversion to complete
       Promise.all(imagePromises).then(() => {
         finalizePDF();
       }).catch(() => {
@@ -962,8 +939,8 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Draw a larger, centered logo at the top
-        storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL().then(url => {
+        // Use new logo location from the specified bucket reference
+        storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
             .then(blob => convertFileToBase64(blob))
@@ -989,13 +966,14 @@
         });
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table
+          // Farm Details Table with same style as checklist table (grid theme, blue header)
           pdf.autoTable({
             startY: currentY,
-            head: [],
+            head: [["Farm Details", ""]],
             body: farmDetailsRows,
             theme: 'grid',
             styles: { fontSize: 12, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
             columnStyles: {
               0: { cellWidth: leftColLabelWidth },
               1: { cellWidth: leftColValueWidth },
@@ -1100,23 +1078,14 @@
             });
           }
           
-          // Upload PDF to both folders using Promise.allSettled for retry logic
+          // Upload PDF only to Agora Customers folder
           const pdfBlob = pdf.output("blob");
           const timestamp = new Date().toISOString().split("T")[0];
           const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
-          Promise.allSettled([
-            uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob),
-            uploadSinglePDFFarm(dairyNumber, fileName, pdfBlob)
-          ]).then(results => {
-            if(results[0].status !== "fulfilled"){
-              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
-            }
-            if(results[1].status !== "fulfilled"){
-              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "farm" });
-            }
+          uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob).catch(err => {
+            db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
           });
           
-          // Delete local form record, save PDF to user, trigger pending uploads, and reload
           db.forms.delete(fd.get("dairy-number"));
           pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
           uploadPendingPDFs();
