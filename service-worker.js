@@ -1,13 +1,13 @@
-// Bump the cache name version each time you release a new update:
-const CACHE_NAME = 'agora-form-cache-v3';
+// Update cache version with each release
+const CACHE_NAME = 'agora-form-cache-v4';
 
 const urlsToCache = [
   '/',
   '/index.html',
   'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css',
-  // Updated logo from "Agora Logo" folder:
+  // Logo from "Agora Logo" folder
   'https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media',
-  // Firebase libraries and additional scripts:
+  // Firebase and other libraries
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js',
@@ -16,52 +16,51 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
 ];
 
-self.addEventListener('install', function (event) {
+self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(function (cache) {
+      .then(cache => {
         console.log('Opened cache:', CACHE_NAME);
         return cache.addAll(urlsToCache);
       })
-      .catch(function (error) {
-        console.error('Failed to cache resources:', error);
+      .catch(error => {
+        console.error('Cache open failed:', error);
       })
   );
-  // Force the waiting service worker to become active immediately.
   self.skipWaiting();
 });
 
-self.addEventListener('fetch', function (event) {
+self.addEventListener('fetch', function(event) {
   event.respondWith(
-    caches.match(event.request).then(function (response) {
-      if (response) return response;
-      return fetch(event.request).then(function (response) {
-        if (!response || response.status !== 200) return response;
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then(function (cache) {
-          cache.put(event.request, responseToCache);
+    caches.match(event.request)
+      .then(response => {
+        if (response) return response;
+        return fetch(event.request).then(response => {
+          if (!response || response.status !== 200) return response;
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
         });
-        return response;
-      });
-    }).catch(function () {
-      return caches.match('/index.html');
-    })
+      })
+      .catch(() => caches.match('/index.html'))
   );
 });
 
-self.addEventListener('activate', function (event) {
+self.addEventListener('activate', function(event) {
   event.waitUntil(
     Promise.all([
-      caches.keys().then(function (cacheNames) {
-        return Promise.all(
-          cacheNames.map(function (cacheName) {
+      caches.keys().then(cacheNames =>
+        Promise.all(
+          cacheNames.map(cacheName => {
             if (cacheName !== CACHE_NAME) {
               console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
-        );
-      }),
+        )
+      ),
       self.clients.claim()
     ])
   );
