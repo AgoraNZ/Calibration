@@ -168,6 +168,27 @@
         <div id="silo-checklist"></div>
       </div>
       
+      <!-- Temperature Measurement Section -->
+      <div class="section mb-4" id="temp-measurement-section">
+        <h2>Temperature Measurement</h2>
+        <div class="mb-3">
+          <label for="hot-water-temp">Hot Water Temp (°C):</label>
+          <input type="number" class="form-control" id="hot-water-temp" name="hot-water-temp">
+        </div>
+        <div class="mb-3">
+          <label for="hot-water-time">Time Taken:</label>
+          <input type="time" class="form-control" id="hot-water-time" name="hot-water-time" placeholder="--:-- --">
+        </div>
+        <div class="mb-3">
+          <label for="milk-temp">Milk Temp (°C):</label>
+          <input type="number" class="form-control" id="milk-temp" name="milk-temp">
+        </div>
+        <div class="mb-3">
+          <label for="milk-time">Time Taken:</label>
+          <input type="time" class="form-control" id="milk-time" name="milk-time" placeholder="--:-- --">
+        </div>
+      </div>
+      
       <!-- New Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
@@ -836,7 +857,32 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Flow Meters Data with an extra row added only if calibration info exists.
+      // Process Farm Details into a table (using same style as checklist items)
+      const farmLeft = "Dairy Company: " + (fd.get("dairy-company") || "") + "\n" +
+                       "Dairy Number: " + (fd.get("dairy-number") || "") + "\n" +
+                       "Address: " + (fd.get("address") || "") + "\n" +
+                       "Customer Name: " + (fd.get("customer-name") || "");
+      const farmRight = "Visit Date: " + (fd.get("visit-date") || "") + "\n" +
+                        "Visit Type: " + (fd.get("visit-type") || "") + "\n" +
+                        "Inspection Start Time: " + (fd.get("inspection-start-time") || "") + "\n" +
+                        "Inspection End Time: " + (fd.get("inspection-end-time") || "") + "\n" +
+                        "Inspection Completed By: " + (fd.get("inspection-completed-by") || "") + "\n" +
+                        "Call Type: " + (fd.get("call-type") || "");
+      const farmDetailsTable = [[farmLeft, farmRight]];
+      
+      // Process Temperature Measurement Data from new section
+      const hotWaterTemp = fd.get("hot-water-temp") || "";
+      const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
+      const milkTemp = fd.get("milk-temp") || "";
+      const milkTime = fd.get("milk-time") || "--:-- --";
+      const tempMeasurementData = [
+        ["Hot Water Temp (°C):", hotWaterTemp],
+        ["Time Taken:", hotWaterTime],
+        ["Milk Temp (°C):", milkTemp],
+        ["Time Taken:", milkTime]
+      ];
+      
+      // Process Flow Meters Data with extra row added only if calibration info exists.
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -899,35 +945,25 @@
         }
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details two-column layout:
-          const leftX = 40;
-          const rightX = Math.floor(pageWidth / 2) + 20;
-          const startY = currentY;
-          const lineHeight = 15;
-          const leftDetails = [
-            "Dairy Company: " + (fd.get("dairy-company") || ""),
-            "Dairy Number: " + (fd.get("dairy-number") || ""),
-            "Address: " + (fd.get("address") || ""),
-            "Customer Name: " + (fd.get("customer-name") || "")
-          ];
-          const rightDetails = [
-            "Visit Date: " + (fd.get("visit-date") || ""),
-            "Visit Type: " + (fd.get("visit-type") || ""),
-            "Inspection Start Time: " + (fd.get("inspection-start-time") || ""),
-            "Inspection End Time: " + (fd.get("inspection-end-time") || ""),
-            "Inspection Completed By: " + (fd.get("inspection-completed-by") || ""),
-            "Call Type: " + (fd.get("call-type") || "")
-          ];
-          const maxRows = Math.max(leftDetails.length, rightDetails.length);
-          for (let i = 0; i < maxRows; i++) {
-            if (i < leftDetails.length) {
-              pdf.text(leftDetails[i], leftX, startY + i * lineHeight);
-            }
-            if (i < rightDetails.length) {
-              pdf.text(rightDetails[i], rightX, startY + i * lineHeight);
-            }
-          }
-          currentY = startY + maxRows * lineHeight + 20;
+          // Farm Details Table
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Farm Details", ""]],
+            body: farmDetailsTable,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          // Temperature Measurement Section
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Temperature Measurement", ""]],
+            body: tempMeasurementData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
           
           // Checklist Items Table
           pdf.setFont("helvetica", "bold");
