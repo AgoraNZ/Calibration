@@ -32,7 +32,7 @@
       text-align: center;
     }
     h1 { margin-bottom: 40px; }
-    /* Ensure all labels remain black */
+    /* Ensure labels remain black */
     label {
       color: #000;
       margin-top: 10px;
@@ -51,7 +51,7 @@
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
-    /* On the form, the logo is 250px; in the PDF it will be rendered centered at 120pt width */
+    /* On the form, logo remains 250px; in the PDF it will be rendered at 120pt width and centered */
     .logo { display: block; margin: 0 auto 20px; width: 250px; }
     .record-container {
       background-color: #fff;
@@ -179,7 +179,6 @@
         <h2>Additional Checks</h2>
         <div id="additional-checks"></div>
       </div>
-
       
       <!-- Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
@@ -266,7 +265,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.2 (Agora)</div>
+    <div class="version">Version 6.3 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -998,7 +997,7 @@
         }
       }
       
-      // Process Flow Meters Data (using defined field prefixes)
+      // Process Flow Meters Data (using defined prefixes)
       const meters = [
         { name: "Acid Flow Meter", prefix: "acid-flow" },
         { name: "Chlor Alkali Flow Meter", prefix: "chlor-flow" },
@@ -1101,7 +1100,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section – add new pages if space is insufficient
+          // Attached Photos Section – add new pages if necessary
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
             if (currentY + 40 > pageHeight) { pdf.addPage(); currentY = 40; }
@@ -1250,7 +1249,8 @@
       systemInput.addEventListener("input", updateCalibrationDisplay);
     }
     
-    document.addEventListener("DOMContentLoaded", async () => {
+    // Use a readyState check to initialize immediately if document is already loaded
+    async function init() {
       const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name", "inspection-completed-by"];
       fieldsToAutoCap.forEach(autoCapitalizeInput);
       await setupDairyCompanyDatalist();
@@ -1267,7 +1267,13 @@
       setupFlowMeterTolerance("chlor-flow-physical", "chlor-flow-system", "chlor-calibration");
       setupFlowMeterTolerance("teat-flow-physical", "teat-flow-system", "teat-calibration");
       setupFlowMeterTolerance("water-flow-physical", "water-flow-system", "water-calibration");
-    });
+    }
+    
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
