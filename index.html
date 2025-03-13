@@ -7,7 +7,7 @@
   <title>Agora Reporting Form</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
-    /* Overall background and styling */
+    /* Overall background set to #d2d7dd */
     body {
       background-color: #d2d7dd;
       color: #000;
@@ -27,16 +27,10 @@
       max-width: 800px;
       width: 100%;
     }
-    h1, h2 {
-      color: #333;
-      text-align: center;
-    }
+    h1, h2 { color: #333; text-align: center; }
     h1 { margin-bottom: 40px; }
     /* Ensure labels remain black */
-    label {
-      color: #000;
-      margin-top: 10px;
-    }
+    label { color: #000; margin-top: 10px; }
     button {
       background-color: #FF851B;
       color: #fff;
@@ -51,7 +45,6 @@
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
-    /* On the form, logo remains 250px; in the PDF it will be rendered at 120pt width and centered */
     .logo { display: block; margin: 0 auto 20px; width: 250px; }
     .record-container {
       background-color: #fff;
@@ -81,7 +74,7 @@
       cursor: pointer;
     }
     .search-container { margin-bottom: 20px; }
-    /* Hide file upload inputs and extra fields by default */
+    /* Hide image uploads by default */
     .image-upload { display: none; }
     .image-preview {
       display: none;
@@ -90,6 +83,7 @@
       margin-top: 5px;
       border: 2px solid #ccc;
     }
+    /* Calibration and extra fields hidden by default */
     .calibration-container,
     .temp-extra-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
   </style>
@@ -97,7 +91,7 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Logo on form -->
+    <!-- Small Logo from "Agora Logo" folder -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
@@ -180,7 +174,7 @@
         <div id="additional-checks"></div>
       </div>
       
-      <!-- Temperature Sensors Section -->
+      <!-- New Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
       </div>
@@ -265,7 +259,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.3 (Agora)</div>
+    <div class="version">Version 6.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -286,7 +280,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
-    /* Firebase & Dexie Initialization */
+    /* FIREBASE & DEXIE INIT */
     const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
@@ -336,7 +330,7 @@
       userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
       const datalist = document.getElementById('dairy-company-list');
       datalist.innerHTML = "";
-      allCompanies.forEach(c => {
+      allCompanies.forEach(c => { 
         const opt = document.createElement('option');
         opt.value = c;
         datalist.appendChild(opt);
@@ -393,7 +387,7 @@
       await checkOrCreateFormRecord();
     }
     
-    /* Create Dynamic Form Sections */
+    /* Create checklist items similar to original */
     function createHealthSafetyItems(containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -420,6 +414,7 @@
       commentsInput.setAttribute("spellcheck", "true");
       commentsInput.setAttribute("autocorrect", "off");
       itemContainer.appendChild(commentsInput);
+      // Two file inputs hidden by default
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -723,7 +718,7 @@
       tempCommentsInput.classList.add("form-control");
       tempCommentsInput.name = "tempSensor-comments";
       extraContainer.appendChild(tempCommentsInput);
-      // Two file uploads
+      // Two photo uploads
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -740,7 +735,7 @@
       container.appendChild(sensorItem);
     }
     
-    /* LOAD, CLEAR & SAVE DATA */
+    /* LOAD, CLEAR & SAVE Data */
     function loadFormDataFromRecord(record) {
       const data = record.formData || {};
       document.getElementById("dairy-number").value = record.dairyNumber;
@@ -767,7 +762,7 @@
               statusSelect.value = status;
               statusSelect.dispatchEvent(new Event("change"));
             }
-            const commentsInput = container.querySelector("input[type='text']");
+            const commentsInput = container.querySelector('input[type="text"]');
             if (commentsInput) { commentsInput.value = comments; }
             if (imagesBase64 && imagesBase64.length > 0) {
               const previews = container.querySelectorAll(".image-preview");
@@ -812,7 +807,6 @@
       const form = document.getElementById("hygiene-checklist-form");
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      
       // Process checklist items with photo handling
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
@@ -825,10 +819,12 @@
         const label = container.querySelector("label");
         if (!label) continue;
         const key = label.textContent.trim();
-        const status = container.querySelector("select")?.value || "";
-        let comments = container.querySelector("input[type='text']")?.value || "";
+        const statusSelect = container.querySelector("select");
+        const status = statusSelect ? statusSelect.value : "";
+        const commentsInput = container.querySelector('input[type="text"]');
+        let comments = commentsInput ? commentsInput.value : "";
         let imagesBase64 = [];
-        const fileInputs = container.querySelectorAll("input[type='file']");
+        const fileInputs = container.querySelectorAll('input[type="file"]');
         for (let fi of fileInputs) {
           if (fi.files && fi.files[0]) {
             const base64 = await convertFileToBase64(fi.files[0]);
@@ -843,7 +839,7 @@
       }
       data.checklistItems = checklistItemsData;
       
-      // Process Temperature Sensor Data
+      // Save Temperature Sensor data
       const tsContainer = document.getElementById("temperature-sensors-container");
       const tsItem = tsContainer.querySelector(".checklist-item");
       if (tsItem) {
@@ -852,15 +848,7 @@
         const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
         const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
         const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
-        let tsImages = [];
-        const tsFileInputs = tsItem.querySelectorAll("input[type='file']");
-        for (let fi of tsFileInputs) {
-          if (fi.files && fi.files[0]) {
-            const base64 = await convertFileToBase64(fi.files[0]);
-            tsImages.push(base64);
-          }
-        }
-        data.temperatureSensors = { status: tsStatus, type: tsType, tested: tsTested, system: tsSystem, comments: tsComments, imagesBase64: tsImages };
+        data.temperatureSensors = { status: tsStatus, type: tsType, tested: tsTested, system: tsSystem, comments: tsComments };
       }
       
       record.formData = data;
@@ -928,7 +916,7 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Process checklist items and photos
+      // Process checklist items (with photo note) and collect photos
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -954,14 +942,18 @@
           comments += photoNote;
           const p = { itemName, images: [] };
           images.forEach((file, idx) => {
-            pendingImages++;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-              p.images[idx] = evt.target.result;
-              pendingImages--;
-              if (pendingImages === 0) { finalizePDF(); }
-            };
-            reader.readAsDataURL(file);
+            if (typeof file === "string") {
+              p.images[idx] = file;
+            } else {
+              pendingImages++;
+              const reader = new FileReader();
+              reader.onload = (evt) => {
+                p.images[idx] = evt.target.result;
+                pendingImages--;
+                if (pendingImages === 0) finalizePDF();
+              };
+              reader.readAsDataURL(file);
+            }
           });
           photoStore.push(p);
         }
@@ -978,60 +970,44 @@
         const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
         const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
-        const tsFileInputs = tsItem.querySelectorAll("input[type='file']");
-        const tsImages = [];
-        tsFileInputs.forEach(inp => {
-          if (inp.files && inp.files[0]) {
-            pendingImages++;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-              tsImages.push(evt.target.result);
-              pendingImages--;
-              if (pendingImages === 0) { finalizePDF(); }
-            };
-            reader.readAsDataURL(inp.files[0]);
-          }
-        });
-        if (tsImages.length > 0) {
-          photoStore.push({ itemName: "Temperature Sensor Photos", images: tsImages });
-        }
       }
       
-      // Process Flow Meters Data (using defined prefixes)
-      const meters = [
-        { name: "Acid Flow Meter", prefix: "acid-flow" },
-        { name: "Chlor Alkali Flow Meter", prefix: "chlor-flow" },
-        { name: "Teat Concentrate Flow Meter", prefix: "teat-flow" },
-        { name: "Water Flow Meter", prefix: "water-flow" }
-      ];
-      const flowMeters = [];
-      meters.forEach(m => {
-        const physical = fd.get(m.prefix + "-physical") || "";
-        const system = fd.get(m.prefix + "-system") || "";
-        flowMeters.push([m.name, physical + " ml", system + " ml"]);
+      // Process Flow Meters Data
+      let flowMeters = [];
+      const fmNames = ["Acid Flow Meter", "Chlor Alkali Flow Meter", "Teat Concentrate Flow Meter", "Water Flow Meter"];
+      fmNames.forEach(name => {
+        const key = name.toLowerCase().replace(/\s/g, "-");
+        const physical = fd.get(key + "-physical") || "";
+        const system = fd.get(key + "-system") || "";
+        flowMeters.push([name, physical + " ml", system + " ml"]);
       });
       
-      if (pendingImages === 0) { finalizePDF(); }
-      
-      async function finalizePDF() {
+      // Function to finalize and output PDF
+      function finalizePDF() {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        // Add centered logo (fixed width 120pt)
+        // Draw a small logo (fixed width of 100)
         try {
-          const logoUrl = await storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL();
-          const logoBlob = await fetch(logoUrl).then(res => res.blob());
-          const logoBase64 = await convertFileToBase64(logoBlob);
-          const fixedLogoWidth = 120;
-          const img = new Image();
-          img.onload = function() {
-            const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
-            const x = (pdf.internal.pageSize.getWidth() - fixedLogoWidth) / 2;
-            pdf.addImage(logoBase64, "JPEG", x, currentY, fixedLogoWidth, fixedLogoHeight);
-            currentY += fixedLogoHeight + 20;
-            addFarmDetailsAndTables(pdf);
-          };
-          img.src = logoBase64;
+          storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL().then(url => {
+            fetch(url)
+              .then(res => res.blob())
+              .then(blob => convertFileToBase64(blob))
+              .then(logoBase64 => {
+                const img = new Image();
+                img.onload = function() {
+                  const fixedLogoWidth = 100;
+                  const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+                  pdf.addImage(logoBase64, "JPEG", 40, 40, fixedLogoWidth, fixedLogoHeight);
+                  currentY = 40 + fixedLogoHeight + 20;
+                  addFarmDetailsAndTables(pdf);
+                };
+                img.src = logoBase64;
+              })
+              .catch(err => {
+                console.error("Logo error:", err);
+                addFarmDetailsAndTables(pdf);
+              });
+          });
         } catch (err) {
           console.error("Logo error:", err);
           addFarmDetailsAndTables(pdf);
@@ -1100,34 +1076,26 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section – add new pages if necessary
+          // Attached Photos Section
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
-            if (currentY + 40 > pageHeight) { pdf.addPage(); currentY = 40; }
             pdf.text("Attached Photos:", 40, currentY);
             currentY += 20;
             photoStore.forEach(photoItem => {
-              if (currentY + 120 > pageHeight) { pdf.addPage(); currentY = 40; }
               pdf.setFont("helvetica", "bold");
               pdf.text(photoItem.itemName, 40, currentY);
               currentY += 15;
               photoItem.images.forEach((img, idx) => {
                 try {
                   const imgProps = pdf.getImageProperties(img);
-                  const imgWidth = 80;
+                  const imgWidth = 100;
                   const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                  let posX = 40 + idx * (imgWidth + 10);
-                  if (posX + imgWidth > pdf.internal.pageSize.getWidth() - 40) {
-                    pdf.addPage();
-                    currentY = 40;
-                    posX = 40;
-                  }
-                  pdf.addImage(img, "JPEG", posX, currentY, imgWidth, imgHeight);
+                  pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
                 } catch(e) {
                   console.error("Error adding image:", e);
                 }
               });
-              currentY += 100;
+              currentY += 120;
             });
           }
           
@@ -1135,18 +1103,19 @@
           const timestamp = new Date().toISOString().split("T")[0];
           const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
           let uploadSuccessful = false;
-          try {
-            await uploadSinglePDF(fd.get("dairy-number"), fileName, pdfBlob);
-            uploadSuccessful = true;
-            console.log("PDF uploaded to Agora Customers folder.");
-          } catch (err) {
-            console.error("PDF upload failed:", err);
+          if (navigator.onLine) {
+            uploadSinglePDF(fd.get("dairy-number"), fileName, pdfBlob).then(() => {
+              uploadSuccessful = true;
+              console.log("PDF uploaded to Agora Customers folder.");
+            }).catch(err => {
+              console.error("PDF upload failed:", err);
+            });
           }
           if (!uploadSuccessful) {
-            await db.pdfQueue.add({ dairyNumber: fd.get("dairy-number"), fileName, pdfBlob, uploaded: false });
+            db.pdfQueue.add({ dairyNumber: fd.get("dairy-number"), fileName, pdfBlob, uploaded: false });
             console.log("PDF upload queued for later retry.");
           }
-          await db.forms.delete(fd.get("dairy-number"));
+          db.forms.delete(fd.get("dairy-number"));
           pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
           uploadPendingPDFs();
           clearEntireForm();
@@ -1230,7 +1199,6 @@
     
     function goBackToRecords() { loadAllRecords(); }
     
-    /* Flow Meter Tolerance Logic */
     function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
       const physicalInput = document.getElementById(physicalId);
       const systemInput = document.getElementById(systemId);
@@ -1249,8 +1217,7 @@
       systemInput.addEventListener("input", updateCalibrationDisplay);
     }
     
-    // Use a readyState check to initialize immediately if document is already loaded
-    async function init() {
+    document.addEventListener("DOMContentLoaded", async () => {
       const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name", "inspection-completed-by"];
       fieldsToAutoCap.forEach(autoCapitalizeInput);
       await setupDairyCompanyDatalist();
@@ -1267,13 +1234,7 @@
       setupFlowMeterTolerance("chlor-flow-physical", "chlor-flow-system", "chlor-calibration");
       setupFlowMeterTolerance("teat-flow-physical", "teat-flow-system", "teat-calibration");
       setupFlowMeterTolerance("water-flow-physical", "water-flow-system", "water-calibration");
-    }
-    
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
+    });
   </script>
 </body>
 </html>
