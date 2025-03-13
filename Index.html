@@ -103,8 +103,8 @@
 <body>
   <!-- PART 2: MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Updated logo -->
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
+    <!-- Updated logo from the "Agora Logo" folder -->
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
       <!-- SECTION: Farm Details -->
@@ -978,8 +978,8 @@
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 80;
         try {
-          // Updated logo reference for PDF
-          const logoRef = storage.ref("6-1YdaEP.jpeg");
+          // Updated logo reference for PDF: now from "Agora Logo" folder.
+          const logoRef = storage.ref("Agora Logo/6-1YdaEP.jpeg");
           const logoUrl = await logoRef.getDownloadURL();
           const logoBlob = await fetch(logoUrl).then(res => res.blob());
           const logoBase64 = await blobToBase64(logoBlob);
