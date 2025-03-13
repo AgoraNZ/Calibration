@@ -7,10 +7,10 @@
   <title>Agora Reporting Form</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
-    /* ===== MAIN STYLES (Updated for shiny silver look) ===== */
+    /* ===== MAIN STYLES (Shiny Silver Look) ===== */
     body {
       background: linear-gradient(135deg, #e0e0e0, #c0c0c0);
-      color: #000000;
+      color: #000;
       font-family: Arial, sans-serif;
       min-height: 100vh;
       display: flex;
@@ -28,14 +28,14 @@
       width: 100%;
     }
     h1, h2 {
-      color: #333333;
+      color: #333;
       text-align: center;
     }
     h1 { margin-bottom: 40px; }
     label { margin-top: 10px; }
     button {
       background-color: #FF851B;
-      color: #FFFFFF;
+      color: #fff;
       border: none;
       padding: 10px 20px;
       cursor: pointer;
@@ -49,7 +49,7 @@
     .version {
       text-align: center;
       margin-top: 20px;
-      color: #333333;
+      color: #333;
       font-size: 12px;
     }
     .logo {
@@ -58,8 +58,8 @@
       width: 250px;
     }
     .record-container {
-      background-color: #FFFFFF;
-      color: #000000;
+      background-color: #fff;
+      color: #000;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
@@ -81,7 +81,7 @@
     .back-button {
       margin-top: 20px;
       background-color: #002B5C;
-      color: #FFFFFF;
+      color: #fff;
       border: none;
       padding: 10px 20px;
       border-radius: 5px;
@@ -96,26 +96,29 @@
       margin-top: 5px;
       border: 2px solid #ccc;
     }
-    /* Calibration container hidden by default */
-    .calibration-container { margin-top: 10px; padding: 10px; border: 1px dashed #888; display: none; }
+    /* Calibration container (hidden by default) */
+    .calibration-container {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px dashed #888;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <!-- PART 2: MAIN FORM CONTAINER -->
+  <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Updated logo from the "Agora Logo" folder -->
+    <!-- Logo now from the "Agora Logo" folder -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
-      <!-- SECTION: Farm Details -->
+      <!-- Farm Details -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
-        <input type="text" class="form-control" id="dairy-number" name="dairy-number"
-               onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="dairy-company">Dairy Company:</label>
-        <input type="text" class="form-control" id="dairy-company" name="dairy-company"
-               list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="off" spellcheck="false">
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="off" spellcheck="false">
         <datalist id="dairy-company-list"></datalist>
         <label for="address">Address:</label>
         <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="off" spellcheck="false">
@@ -149,15 +152,13 @@
         <label for="visit-date">Visit Date:</label>
         <input type="date" class="form-control" id="visit-date" name="visit-date">
         <label for="visit-type">Visit Type:</label>
-        <input type="text" class="form-control" id="visit-type" name="visit-type"
-               value="Milking Plant & Milk Vat Check" readonly autocapitalize="words" autocorrect="off" spellcheck="false">
+        <input type="text" class="form-control" id="visit-type" name="visit-type" value="Milking Plant & Milk Vat Check" readonly autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="inspection-start-time">Inspection Start Time:</label>
         <input type="time" class="form-control" id="inspection-start-time" name="inspection-start-time">
         <label for="inspection-end-time">Inspection End Time:</label>
         <input type="time" class="form-control" id="inspection-end-time" name="inspection-end-time">
         <label for="inspection-completed-by">Inspection Completed By:</label>
-        <input type="text" class="form-control" id="inspection-completed-by" name="inspection-completed-by"
-               autocapitalize="words" autocorrect="off" spellcheck="false">
+        <input type="text" class="form-control" id="inspection-completed-by" name="inspection-completed-by" autocapitalize="words" autocorrect="off" spellcheck="false">
         <label for="call-type">Call Type:</label>
         <select id="call-type" name="call-type" class="form-select">
           <option value="alert">Alert</option>
@@ -166,31 +167,31 @@
         </select>
       </div>
       
-      <!-- HEALTH & SAFETY -->
+      <!-- Health & Safety -->
       <div class="section mb-4">
         <h2>Health & Safety</h2>
         <div id="health-safety-top"></div>
       </div>
       
-      <!-- PLANT CHECKLIST -->
+      <!-- Plant Checklist -->
       <div class="section mb-4">
         <h2>Plant Checklist</h2>
         <div id="checklist-items"></div>
       </div>
       
-      <!-- SILO CHECKLIST -->
+      <!-- Silo Checklist -->
       <div class="section mb-4">
         <h2>Silo Checklist</h2>
         <div id="silo-checklist"></div>
       </div>
       
-      <!-- ADDITIONAL CHECKS -->
+      <!-- Additional Checks -->
       <div class="section mb-4">
         <h2>Additional Checks</h2>
         <div id="additional-checks"></div>
       </div>
       
-      <!-- TEMPERATURE MEASUREMENTS -->
+      <!-- Temperature Measurements -->
       <div class="section mb-4">
         <h2>Temperature Measurements</h2>
         <div class="checklist-item">
@@ -207,7 +208,7 @@
         </div>
       </div>
       
-      <!-- NEW: TEMPERATURE SENSORS -->
+      <!-- Temperature Sensors -->
       <div class="section mb-4" id="temperature-sensors-section">
         <h2>Temperature Sensors</h2>
         <div class="checklist-item">
@@ -220,7 +221,7 @@
         </div>
       </div>
       
-      <!-- NEW: FLOW METERS -->
+      <!-- Flow Meters -->
       <div class="section mb-4" id="flow-meters-section">
         <h2>Flow Meters</h2>
         <!-- Acid Flow Meter -->
@@ -307,14 +308,13 @@
   <div id="record-container" class="record-container" style="display: none;">
     <h2>All Agora Records</h2>
     <div class="search-container">
-      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number"
-             oninput="filterRecords()">
+      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecords()">
     </div>
     <div id="record-list" class="record-list"></div>
     <button class="back-button" onclick="goBack()">Back to Checklist</button>
   </div>
   
-  <!-- PART 4: SCRIPTS -->
+  <!-- SCRIPTS -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
@@ -394,7 +394,7 @@
     }
     
     /*******************************************
-     * C: FETCH FARM DETAILS (Updated folder)
+     * C: FETCH FARM DETAILS (from Agora Farm Details)
      *******************************************/
     async function fetchFarmDetails() {
       const dairyNumber = document.getElementById('dairy-number').value.trim();
@@ -848,7 +848,7 @@
     }
     
     /*******************************************
-     * H: SAVE FARM DETAILS TO FIREBASE (Updated folder)
+     * H: SAVE FARM DETAILS TO FIREBASE (Agora Farm Details)
      *******************************************/
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
@@ -872,7 +872,7 @@
     }
     
     /*******************************************
-     * H2: PDF UPLOAD RETRY LOGIC (Updated folder)
+     * H2: PDF UPLOAD RETRY LOGIC (Agora Customers)
      *******************************************/
     async function uploadPendingPDFs() {
       if (!navigator.onLine) return;
@@ -978,7 +978,7 @@
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 80;
         try {
-          // Updated logo reference for PDF: now from "Agora Logo" folder.
+          // Logo from "Agora Logo" folder
           const logoRef = storage.ref("Agora Logo/6-1YdaEP.jpeg");
           const logoUrl = await logoRef.getDownloadURL();
           const logoBlob = await fetch(logoUrl).then(res => res.blob());
@@ -990,14 +990,14 @@
           const x = (pageWidth - imgWidth) / 2;
           pdf.addImage(logoBase64, "JPEG", x, 40, imgWidth, imgHeight);
           pdf.setFontSize(12);
-          pdf.setTextColor("#000000");
+          pdf.setTextColor("#000");
           pdf.setFont("helvetica", "bold");
           pdf.text("Farm Details:", 40, imgHeight + 60);
           currentY = imgHeight + 80;
         } catch (err) {
           console.error("No logo found or error retrieving logo. Generating PDF without logo.");
           pdf.setFontSize(12);
-          pdf.setTextColor("#000000");
+          pdf.setTextColor("#000");
           pdf.setFont("helvetica", "bold");
           pdf.text("Farm Details:", 40, currentY);
           currentY += 20;
@@ -1024,7 +1024,7 @@
           head: [["Item", "Status", "Comments"]],
           body: tableData,
           styles: { fontSize: 10, cellPadding: 5 },
-          headStyles: { fillColor: "#002B5C", textColor: "#FFFFFF" }
+          headStyles: { fillColor: "#002B5C", textColor: "#fff" }
         });
         let afterTableY = pdf.lastAutoTable.finalY + 20;
         pdf.setFont("helvetica", "bold");
@@ -1043,7 +1043,7 @@
         afterTableY += 15;
         pdf.text(`Time Taken: ${milkTime}`, 40, afterTableY);
         afterTableY += 20;
-        // New: Temperature Sensors section
+        // Temperature Sensors
         pdf.setFont("helvetica", "bold");
         pdf.text("Temperature Sensors:", 40, afterTableY);
         afterTableY += 20;
@@ -1054,7 +1054,7 @@
         afterTableY += 15;
         pdf.text(`System Temperature: ${systemTemp} °C`, 40, afterTableY);
         afterTableY += 20;
-        // New: Flow Meters section
+        // Flow Meters
         pdf.setFont("helvetica", "bold");
         pdf.text("Flow Meters:", 40, afterTableY);
         afterTableY += 20;
@@ -1145,7 +1145,7 @@
     }
     
     /*******************************************
-     * J: RECORDS VIEW PAGE (Updated folder)
+     * J: RECORDS VIEW PAGE (Agora Customers)
      *******************************************/
     function viewRecords() {
       document.getElementById("form-container").style.display = "none";
@@ -1244,7 +1244,7 @@
     }
     
     /*******************************************
-     * L: DOMContentLoaded – Setup new sections and auto-save
+     * L: DOMContentLoaded – Setup and Auto-Save
      *******************************************/
     document.addEventListener("DOMContentLoaded", async () => {
       const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name", "inspection-completed-by"];
