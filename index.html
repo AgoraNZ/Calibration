@@ -33,7 +33,7 @@
     label { color: #000; margin-top: 10px; }
     button {
       background-color: #FFD700;
-      color: #fff;
+      color: #000; /* Changed from white (#fff) to black */
       border: none;
       padding: 10px 20px;
       cursor: pointer;
@@ -253,7 +253,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.8 (Agora)</div>
+    <div class="version">Version 6.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -810,18 +810,14 @@
           comments += photoNote;
           const p = { itemName, images: [] };
           images.forEach((file, idx) => {
-            if (typeof file === "string") {
-              p.images[idx] = file;
-            } else {
-              pendingImages++;
-              const reader = new FileReader();
-              reader.onload = (evt) => {
-                p.images[idx] = evt.target.result;
-                pendingImages--;
-                if (pendingImages === 0) finalizePDF();
-              };
-              reader.readAsDataURL(file);
-            }
+            pendingImages++;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+              p.images[idx] = evt.target.result;
+              pendingImages--;
+              if (pendingImages === 0) finalizePDF();
+            };
+            reader.readAsDataURL(file);
           });
           photoStore.push(p);
         }
@@ -875,7 +871,7 @@
          }
       }
       
-      // Function to finalize and output PDF
+      // Define the function to finalize and output the PDF
       function finalizePDF() {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
@@ -972,7 +968,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section
+          // Attached Photos Section – photos now 2.5x larger than before (fixed width set to 250)
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
             if (currentY + 20 > pageHeight) {
@@ -993,7 +989,7 @@
               photoItem.images.forEach((img, idx) => {
                 try {
                   const imgProps = pdf.getImageProperties(img);
-                  const imgWidth = 100;
+                  const imgWidth = 250; // Increased from 100 to 250
                   const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
                   if (currentY + imgHeight > pageHeight) {
                     pdf.addPage();
@@ -1031,6 +1027,11 @@
           clearEntireForm();
           location.reload();
         }
+      }
+      
+      // If there are no pending images, finalize the PDF immediately
+      if (pendingImages === 0) {
+        finalizePDF();
       }
     }
     
