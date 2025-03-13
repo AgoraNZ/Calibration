@@ -33,7 +33,7 @@
     label { color: #000; margin-top: 10px; }
     button {
       background-color: #FFD700;
-      color: #000;
+      color: #000; /* Button text now black */
       border: none;
       padding: 10px 20px;
       cursor: pointer;
@@ -253,7 +253,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 7.0 (Agora)</div>
+    <div class="version">Version 7.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -836,30 +836,32 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Flow Meters Data with a second row always added
+      // Process Flow Meters Data with an always-visible extra row
       let flowMeters = [];
+      // Define separate prefixes for main fields and extra calibration fields
       const flowMeterMapping = {
-         "Acid Flow Meter": "acid-flow",
-         "Chlor Alkali Flow Meter": "chlor-flow",
-         "Teat Concentrate Flow Meter": "teat-flow",
-         "Water Flow Meter": "water-flow"
+         "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
+         "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
+         "Teat Concentrate Flow Meter": { main: "teat-flow", extra: "teat" },
+         "Water Flow Meter": { main: "water-flow", extra: "water" }
       };
       for (let meter in flowMeterMapping) {
-         const prefix = flowMeterMapping[meter];
-         const physical = fd.get(prefix + "-physical") || "";
-         const system = fd.get(prefix + "-system") || "";
+         const prefixes = flowMeterMapping[meter];
+         const physical = fd.get(prefixes.main + "-physical") || "";
+         const system = fd.get(prefixes.main + "-system") || "";
          flowMeters.push([meter, physical + " ml", system + " ml"]);
-         const pulseOld = fd.get(prefix + "-pulse-old") || "";
-         const pulseNew = fd.get(prefix + "-pulse-new") || "";
-         const newTestPhysical = fd.get(prefix + "-new-test-physical") || "";
-         const newSystemResult = fd.get(prefix + "-new-system-result") || "";
+         // Use extra prefix to get calibration info
+         const pulseOld = fd.get(prefixes.extra + "-pulse-old") || "";
+         const pulseNew = fd.get(prefixes.extra + "-pulse-new") || "";
+         const newTestPhysical = fd.get(prefixes.extra + "-new-test-physical") || "";
+         const newSystemResult = fd.get(prefixes.extra + "-new-system-result") || "";
          let extraDetailsLeft = "";
          let extraDetailsRight = "";
          if(pulseOld) extraDetailsLeft += "Pulse Old: " + pulseOld;
          if(pulseNew) extraDetailsLeft += (extraDetailsLeft ? ", " : "") + "Pulse New: " + pulseNew;
          if(newTestPhysical) extraDetailsRight += "Test Physical: " + newTestPhysical;
          if(newSystemResult) extraDetailsRight += (extraDetailsRight ? ", " : "") + "System Result: " + newSystemResult;
-         // Always add a second row; cells will be empty if no extra data provided.
+         // Always add a second row; it will show extra details if provided.
          flowMeters.push(["", extraDetailsLeft, extraDetailsRight]);
       }
       
@@ -945,7 +947,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table with always-visible second row
+          // Flow Meters Table with always-visible extra row
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
