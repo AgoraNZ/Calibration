@@ -173,7 +173,8 @@
         <h2>Temperature Measurement</h2>
         <div class="mb-3">
           <label for="hot-water-temp">Hot Water Temp (°C):</label>
-          <input type="number" class="form-control" id="hot-water-temp" name="hot-water-temp">
+          <!-- Change type to text to allow special characters -->
+          <input type="text" class="form-control" id="hot-water-temp" name="hot-water-temp">
         </div>
         <div class="mb-3">
           <label for="hot-water-time">Time Taken:</label>
@@ -181,7 +182,8 @@
         </div>
         <div class="mb-3">
           <label for="milk-temp">Milk Temp (°C):</label>
-          <input type="number" class="form-control" id="milk-temp" name="milk-temp">
+          <!-- Change type to text to allow special characters -->
+          <input type="text" class="form-control" id="milk-temp" name="milk-temp">
         </div>
         <div class="mb-3">
           <label for="milk-time">Time Taken:</label>
@@ -274,7 +276,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 7.1 (Agora)</div>
+    <div class="version">Version 7.2 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -857,20 +859,31 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Farm Details into a table (using same style as checklist items)
-      const farmLeft = "Dairy Company: " + (fd.get("dairy-company") || "") + "\n" +
-                       "Dairy Number: " + (fd.get("dairy-number") || "") + "\n" +
-                       "Address: " + (fd.get("address") || "") + "\n" +
-                       "Customer Name: " + (fd.get("customer-name") || "");
-      const farmRight = "Visit Date: " + (fd.get("visit-date") || "") + "\n" +
-                        "Visit Type: " + (fd.get("visit-type") || "") + "\n" +
-                        "Inspection Start Time: " + (fd.get("inspection-start-time") || "") + "\n" +
-                        "Inspection End Time: " + (fd.get("inspection-end-time") || "") + "\n" +
-                        "Inspection Completed By: " + (fd.get("inspection-completed-by") || "") + "\n" +
-                        "Call Type: " + (fd.get("call-type") || "");
-      const farmDetailsTable = [[farmLeft, farmRight]];
+      // Build Farm Details Table (5 rows, 2 columns)
+      const farmDetailsRows = [
+        [
+          { content: "Dairy Company: " + (fd.get("dairy-company") || ""), styles: { fontStyle: "bold" } },
+          { content: "Visit Type: " + (fd.get("visit-type") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Dairy Number: " + (fd.get("dairy-number") || ""), styles: { fontStyle: "bold" } },
+          { content: "Inspection Start Time: " + (fd.get("inspection-start-time") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Address: " + (fd.get("address") || ""), styles: { fontStyle: "bold" } },
+          { content: "Inspection End Time: " + (fd.get("inspection-end-time") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Customer Name: " + (fd.get("customer-name") || ""), styles: { fontStyle: "bold" } },
+          { content: "Inspection Completed By: " + (fd.get("inspection-completed-by") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Visit Date: " + (fd.get("visit-date") || ""), styles: { fontStyle: "bold" } },
+          { content: "Call Type: " + (fd.get("call-type") || ""), styles: { fontStyle: "normal" } }
+        ]
+      ];
       
-      // Process Temperature Measurement Data from new section
+      // Process Temperature Measurement Data
       const hotWaterTemp = fd.get("hot-water-temp") || "";
       const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
       const milkTemp = fd.get("milk-temp") || "";
@@ -882,7 +895,7 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with extra row added only if calibration info exists.
+      // Process Flow Meters Data with extra calibration row only if calibration info exists.
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -945,13 +958,16 @@
         }
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table
+          // Farm Details Table with two columns (5 rows) and adjusted column widths
           pdf.autoTable({
             startY: currentY,
-            head: [["Farm Details", ""]],
-            body: farmDetailsTable,
-            styles: { fontSize: 10, cellPadding: 5 },
-            headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+            body: farmDetailsRows,
+            theme: 'grid',
+            styles: { fontSize: 12, cellPadding: 5 },
+            columnStyles: {
+              0: { cellWidth: pageWidth * 0.45 },
+              1: { cellWidth: pageWidth * 0.55, halign: 'right' }
+            }
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
