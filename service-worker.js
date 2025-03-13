@@ -5,8 +5,8 @@ const urlsToCache = [
   '/',
   '/index.html',
   'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css',
-  // New logo from Firebase Storage (ensure public access or proper auth):
-  'https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/6-1YdaEP.jpeg?alt=media',
+  // Updated logo from "Agora Logo" folder:
+  'https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media',
   // Firebase and other libraries
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js',
@@ -38,11 +38,9 @@ self.addEventListener('fetch', function (event) {
         return response;
       }
       return fetch(event.request).then(function (response) {
-        // Check if we received a valid response
         if (!response || response.status !== 200) {
           return response;
         }
-        // Clone the response for caching.
         const responseToCache = response.clone();
         caches.open(CACHE_NAME)
           .then(function (cache) {
@@ -51,14 +49,12 @@ self.addEventListener('fetch', function (event) {
         return response;
       });
     }).catch(function () {
-      // Fallback to index.html if offline and asset not cached.
       return caches.match('/index.html');
     })
   );
 });
 
 self.addEventListener('activate', function (event) {
-  // Delete old caches that don't match the current cache name.
   event.waitUntil(
     Promise.all([
       caches.keys().then(function (cacheNames) {
