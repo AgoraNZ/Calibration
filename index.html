@@ -32,7 +32,7 @@
       text-align: center;
     }
     h1 { margin-bottom: 40px; }
-    /* Ensure labels are black */
+    /* Ensure all labels remain black */
     label {
       color: #000;
       margin-top: 10px;
@@ -51,7 +51,7 @@
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
-    /* On the form, logo is 250px wide; in the PDF it will be rendered at 120pt */
+    /* On the form, the logo is 250px; in the PDF it will be rendered centered at 120pt width */
     .logo { display: block; margin: 0 auto 20px; width: 250px; }
     .record-container {
       background-color: #fff;
@@ -336,7 +336,7 @@
       userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
       const datalist = document.getElementById('dairy-company-list');
       datalist.innerHTML = "";
-      allCompanies.forEach(c => { 
+      allCompanies.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
         datalist.appendChild(opt);
@@ -723,7 +723,7 @@
       tempCommentsInput.classList.add("form-control");
       tempCommentsInput.name = "tempSensor-comments";
       extraContainer.appendChild(tempCommentsInput);
-      // Two photo uploads
+      // Two file uploads
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -997,7 +997,7 @@
         }
       }
       
-      // Process Flow Meters Data (using defined prefixes)
+      // Process Flow Meters Data (using defined field prefixes)
       const meters = [
         { name: "Acid Flow Meter", prefix: "acid-flow" },
         { name: "Chlor Alkali Flow Meter", prefix: "chlor-flow" },
@@ -1100,7 +1100,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section – add new page if needed
+          // Attached Photos Section – add new pages if space is insufficient
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
             if (currentY + 40 > pageHeight) { pdf.addPage(); currentY = 40; }
