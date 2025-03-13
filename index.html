@@ -173,7 +173,7 @@
         <h2>Temperature Measurement</h2>
         <div class="mb-3">
           <label for="hot-water-temp">Hot Water Temp (°C):</label>
-          <!-- Use text input to preserve all characters exactly -->
+          <!-- Changed type to text -->
           <input type="text" class="form-control" id="hot-water-temp" name="hot-water-temp">
         </div>
         <div class="mb-3">
@@ -182,6 +182,7 @@
         </div>
         <div class="mb-3">
           <label for="milk-temp">Milk Temp (°C):</label>
+          <!-- Changed type to text -->
           <input type="text" class="form-control" id="milk-temp" name="milk-temp">
         </div>
         <div class="mb-3">
@@ -193,7 +194,6 @@
       <!-- New Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
-        <div id="temp-sensor-item"></div>
       </div>
       
       <!-- Flow Meters Section -->
@@ -276,7 +276,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 7.3 (Agora)</div>
+    <div class="version">Version 7.4 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -315,8 +315,8 @@
       forms: "dairyNumber",
       dairyCompanies: "++id, name",
       teatSprayRatios: "++id, ratio",
-      // Added folder field to track which folder failed
-      pdfQueue: "++id,dairyNumber,fileName,folder,uploaded"
+      // Add a 'target' field for queued PDF uploads.
+      pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
     });
     
     if ('serviceWorker' in navigator) {
@@ -768,11 +768,16 @@
         farmName: fd.get("farm-name") || "",
         island: fd.get("island") || ""
       };
-      const storageRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
-      const metadata = { contentType: "application/json" };
+      // Upload the farm details JSON to both folders
+      const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
       try {
-        await storageRef.put(new Blob([JSON.stringify(farmDetails)], { type: "application/json" }), metadata);
-        console.log("Farm details saved successfully.");
+        // Save to Agora Farm Details folder
+        const storageRefFarm = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
+        await storageRefFarm.put(jsonBlob);
+        // Also save to Agora Customers folder (as part of farm details)
+        const storageRefCust = storage.ref(`Agora Customers/${dairyNumber}/${dairyNumber}-FarmDetails.json`);
+        await storageRefCust.put(jsonBlob);
+        console.log("Farm details saved successfully to both folders.");
       } catch (err) {
         console.error("Error saving farm details:", err);
       }
@@ -780,31 +785,37 @@
     
     async function uploadPendingPDFs() {
       if (!navigator.onLine) return;
-      const queuedPDFs = await db.pdfQueue.where("uploaded").equals(false).toArray();
+      const queuedPDFs = await db.pdfQueue.toArray();
       for (let pdfRecord of queuedPDFs) {
-        try {
-          await uploadSinglePDF(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob, pdfRecord.folder);
-          await db.pdfQueue.update(pdfRecord.id, { uploaded: true });
-          console.log(`Retried PDF for ${pdfRecord.dairyNumber} in folder ${pdfRecord.folder} uploaded successfully.`);
-        } catch (err) {
-          console.error("Retry PDF upload failed:", err);
+        if(pdfRecord.target === "customers"){
+          try{
+            await uploadSinglePDFCustomer(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
+            await db.pdfQueue.delete(pdfRecord.id);
+            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Customers.`);
+          } catch(err){ console.error("Retry PDF upload to Customers failed:", err); }
+        } else if(pdfRecord.target === "farm"){
+          try{
+            await uploadSinglePDFFarm(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
+            await db.pdfQueue.delete(pdfRecord.id);
+            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Farm.`);
+          } catch(err){ console.error("Retry PDF upload to Farm failed:", err); }
         }
       }
     }
     
-    function uploadSinglePDF(dairyNumber, fileName, pdfBlob, folder) {
-      folder = folder || "Agora Customers";
+    function uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob) {
       return new Promise((resolve, reject) => {
-        const uploadRef = storage.ref(`${folder}/${dairyNumber}/${fileName}`);
+        const uploadRef = storage.ref(`Agora Customers/${dairyNumber}/${fileName}`);
         const task = uploadRef.put(pdfBlob);
         task.on("state_changed", null, err => reject(err), () => resolve());
       });
     }
     
-    // Function to upload PDF to a given folder; if it fails, add to queue
-    function tryUploadPDF(dairyNumber, fileName, pdfBlob, folder) {
-      return uploadSinglePDF(dairyNumber, fileName, pdfBlob, folder).catch(err => {
-        db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, folder, uploaded: false });
+    function uploadSinglePDFFarm(dairyNumber, fileName, pdfBlob) {
+      return new Promise((resolve, reject) => {
+        const uploadRef = storage.ref(`Agora Farm Details/${dairyNumber}/${fileName}`);
+        const task = uploadRef.put(pdfBlob);
+        task.on("state_changed", null, err => reject(err), () => resolve());
       });
     }
     
@@ -868,7 +879,12 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table (4 columns: label & data for left and right)
+      // Build Farm Details Table as a 4-column table (left and right sides)
+      const pageWidth = 595; // A4 width in points approximately
+      const leftColLabelWidth = pageWidth * 0.15;
+      const leftColValueWidth = pageWidth * 0.20;
+      const rightColLabelWidth = pageWidth * 0.15;
+      const rightColValueWidth = pageWidth * 0.25;
       const farmDetailsRows = [
         [
           { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -902,7 +918,7 @@
         ]
       ];
       
-      // Process Temperature Measurement Data
+      // Process Temperature Measurement Data from new section
       const hotWaterTemp = fd.get("hot-water-temp") || "";
       const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
       const milkTemp = fd.get("milk-temp") || "";
@@ -914,7 +930,7 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with extra calibration row added only if calibration info exists.
+      // Process Flow Meters Data with extra calibration row (only if calibration info exists)
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -977,19 +993,20 @@
         }
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table using grid theme with 4 columns.
+          // Farm Details Table: 4 columns (label and value for left, label and value for right)
           pdf.autoTable({
             startY: currentY,
-            theme: 'grid',
-            head: [["", "", "", ""]],
+            head: [],
             body: farmDetailsRows,
+            theme: 'grid',
             styles: { fontSize: 12, cellPadding: 5 },
             columnStyles: {
-              0: { cellWidth: (pageWidth * 0.45) / 2 },
-              1: { cellWidth: (pageWidth * 0.45) / 2 },
-              2: { cellWidth: (pageWidth * 0.55) / 2 },
-              3: { cellWidth: (pageWidth * 0.55) / 2, halign: 'right' }
-            }
+              0: { cellWidth: leftColLabelWidth },
+              1: { cellWidth: leftColValueWidth },
+              2: { cellWidth: rightColLabelWidth, halign: 'right' },
+              3: { cellWidth: rightColValueWidth, halign: 'right' }
+            },
+            margin: { left: 40, right: 40 }
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
@@ -999,7 +1016,8 @@
             head: [["Temperature Measurement", ""]],
             body: tempMeasurementData,
             styles: { fontSize: 10, cellPadding: 5 },
-            headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
@@ -1012,7 +1030,8 @@
             head: [["Item", "Status", "Comments"]],
             body: checklistData,
             styles: { fontSize: 10, cellPadding: 5 },
-            headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
@@ -1026,12 +1045,13 @@
               head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
               body: tempSensorData,
               styles: { fontSize: 10, cellPadding: 5 },
-              headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+              margin: { left: 40, right: 40 }
             });
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table (only include extra row if calibration info exists)
+          // Flow Meters Table (with extra calibration row if calibration info exists)
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
@@ -1041,7 +1061,8 @@
               head: [["Meter", "Physical Test", "System Read"]],
               body: flowMeters,
               styles: { fontSize: 10, cellPadding: 5 },
-              headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+              margin: { left: 40, right: 40 }
             });
             currentY = pdf.lastAutoTable.finalY + 20;
           }
@@ -1083,22 +1104,27 @@
             });
           }
           
-          // Prepare to upload PDF to both folders
+          // Upload PDF to both folders using Promise.allSettled for retry logic
           const pdfBlob = pdf.output("blob");
           const timestamp = new Date().toISOString().split("T")[0];
           const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
-          
-          // Attempt uploads to both folders concurrently.
-          Promise.all([
-            tryUploadPDF(fd.get("dairy-number"), fileName, pdfBlob, "Agora Customers"),
-            tryUploadPDF(fd.get("dairy-number"), fileName, pdfBlob, "Agora Farm Details")
-          ]).finally(() => {
-            // Save PDF to user's computer regardless.
-            pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
-            uploadPendingPDFs();
-            clearEntireForm();
-            location.reload();
+          Promise.allSettled([
+            uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob),
+            uploadSinglePDFFarm(dairyNumber, fileName, pdfBlob)
+          ]).then(results => {
+            if(results[0].status !== "fulfilled"){
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+            }
+            if(results[1].status !== "fulfilled"){
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "farm" });
+            }
           });
+          
+          db.forms.delete(fd.get("dairy-number"));
+          pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
+          uploadPendingPDFs();
+          clearEntireForm();
+          location.reload();
         }
       }
       
