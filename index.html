@@ -31,8 +31,8 @@
     h1 { margin-bottom: 40px; }
     label { margin-top: 10px; }
     button {
-      background-color: #FF851B;
-      color: #fff;
+      background-color: #FFD700; /* Yellow gold */
+      color: #000;
       border: none;
       padding: 10px 20px;
       cursor: pointer;
@@ -40,7 +40,7 @@
       margin: 20px auto;
       border-radius: 5px;
     }
-    button:hover { background-color: #FF4136; }
+    button:hover { background-color: #FFC107; }
     .checklist-item { margin-bottom: 30px; }
     .form-control, .form-select { margin-top: 5px; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
@@ -80,11 +80,12 @@
       margin-top: 5px;
       border: 2px solid #ccc;
     }
+    /* CALIBRATION FIELDS: now visible by default */
     .calibration-container {
       margin-top: 10px;
       padding: 10px;
       border: 1px dashed #888;
-      display: none;
+      display: block;
     }
   </style>
 </head>
@@ -95,7 +96,7 @@
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
-      <!-- Farm Details -->
+      <!-- Farm Details Section -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
@@ -150,31 +151,25 @@
         </select>
       </div>
       
-      <!-- Health & Safety -->
+      <!-- Health & Safety Section -->
       <div class="section mb-4">
         <h2>Health & Safety</h2>
         <div id="health-safety-top"></div>
       </div>
       
-      <!-- Plant Checklist -->
+      <!-- Plant Checklist Section -->
       <div class="section mb-4">
         <h2>Plant Checklist</h2>
         <div id="checklist-items"></div>
       </div>
       
-      <!-- Silo Checklist -->
+      <!-- Silo Checklist Section -->
       <div class="section mb-4">
         <h2>Silo Checklist</h2>
         <div id="silo-checklist"></div>
       </div>
       
-      <!-- Additional Checks -->
-      <div class="section mb-4">
-        <h2>Additional Checks</h2>
-        <div id="additional-checks"></div>
-      </div>
-      
-      <!-- Temperature Measurements -->
+      <!-- Temperature Measurements Section -->
       <div class="section mb-4">
         <h2>Temperature Measurements</h2>
         <div class="checklist-item">
@@ -191,7 +186,7 @@
         </div>
       </div>
       
-      <!-- Temperature Sensors -->
+      <!-- Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-section">
         <h2>Temperature Sensors</h2>
         <div class="checklist-item">
@@ -204,7 +199,7 @@
         </div>
       </div>
       
-      <!-- Flow Meters -->
+      <!-- Flow Meters Section -->
       <div class="section mb-4" id="flow-meters-section">
         <h2>Flow Meters</h2>
         <!-- Acid Flow Meter -->
@@ -332,7 +327,7 @@
         .catch(err => console.error('SW registration failed:', err));
     }
     
-    // Utility functions
+    // Utility Functions
     function toTitleCase(str) {
       return str.replace(/\w\S*/g, function(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -352,13 +347,13 @@
       ];
       const userCompanies = await db.dairyCompanies.toArray();
       const allCompanies = [...defaultCompanies];
-      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
+      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) allCompanies.push(u.name); });
       const datalist = document.getElementById('dairy-company-list');
       datalist.innerHTML = "";
-      allCompanies.forEach(c => { 
-        const opt = document.createElement('option'); 
-        opt.value = c; 
-        datalist.appendChild(opt); 
+      allCompanies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        datalist.appendChild(opt);
       });
       const dairyCompanyInput = document.getElementById('dairy-company');
       dairyCompanyInput.addEventListener('blur', async () => {
@@ -384,15 +379,15 @@
         if (!response.ok) throw new Error('Failed to fetch farm details');
         const data = await response.json();
         if (data) {
-          document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
-          document.getElementById('address').value = toTitleCase(data.address || '');
-          document.getElementById('customer-name').value = toTitleCase(data.customerName || '');
-          document.getElementById('region').value = data.region || '';
-          document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
-          document.getElementById('island').value = data.island || '';
+          document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || "");
+          document.getElementById('address').value = toTitleCase(data.address || "");
+          document.getElementById('customer-name').value = toTitleCase(data.customerName || "");
+          document.getElementById('region').value = data.region || "";
+          document.getElementById('farm-name').value = toTitleCase(data.farmName || "");
+          document.getElementById('island').value = data.island || "";
         }
       } catch (error) {
-        console.log('No farm details found or error:', error);
+        console.log("No farm details found or error:", error);
       }
     }
     
@@ -441,7 +436,6 @@
       const imageUpload1 = document.createElement("input");
       imageUpload1.type = "file";
       imageUpload1.classList.add("form-control", "image-upload");
-      imageUpload1.style.display = "none";
       itemContainer.appendChild(imageUpload1);
       const imagePreview1 = document.createElement("img");
       imagePreview1.classList.add("image-preview");
@@ -449,20 +443,10 @@
       const imageUpload2 = document.createElement("input");
       imageUpload2.type = "file";
       imageUpload2.classList.add("form-control", "image-upload");
-      imageUpload2.style.display = "none";
       itemContainer.appendChild(imageUpload2);
       const imagePreview2 = document.createElement("img");
       imagePreview2.classList.add("image-preview");
       itemContainer.appendChild(imagePreview2);
-      statusSelect.addEventListener("change", () => {
-        if (statusSelect.value === "attention-required") {
-          imageUpload1.style.display = "block";
-          imageUpload2.style.display = "block";
-        } else {
-          imageUpload1.style.display = "none";
-          imageUpload2.style.display = "none";
-        }
-      });
       container.appendChild(itemContainer);
     }
     
@@ -505,20 +489,11 @@
           const imageUpload = document.createElement("input");
           imageUpload.type = "file";
           imageUpload.classList.add("form-control", "image-upload");
-          imageUpload.style.display = "none";
           itemContainer.appendChild(imageUpload);
           const imagePreview = document.createElement("img");
           imagePreview.classList.add("image-preview");
           itemContainer.appendChild(imagePreview);
         }
-        statusSelect.addEventListener("change", () => {
-          const allInputs = itemContainer.querySelectorAll('input[type="file"]');
-          if (statusSelect.value === "attention-required") {
-            allInputs.forEach(inp => inp.style.display = "block");
-          } else {
-            allInputs.forEach(inp => inp.style.display = "none");
-          }
-        });
         container.appendChild(itemContainer);
       });
     }
@@ -558,152 +533,16 @@
           const imageUpload = document.createElement("input");
           imageUpload.type = "file";
           imageUpload.classList.add("form-control", "image-upload");
-          imageUpload.style.display = "none";
           itemContainer.appendChild(imageUpload);
           const imagePreview = document.createElement("img");
           imagePreview.classList.add("image-preview");
           itemContainer.appendChild(imagePreview);
         }
-        statusSelect.addEventListener("change", () => {
-          const allInputs = itemContainer.querySelectorAll('input[type="file"]');
-          if (statusSelect.value === "attention-required") {
-            allInputs.forEach(inp => inp.style.display = "block");
-          } else {
-            allInputs.forEach(inp => inp.style.display = "none");
-          }
-        });
         container.appendChild(itemContainer);
       });
     }
     
-    async function createAdditionalChecks() {
-      const container = document.getElementById("additional-checks");
-      container.innerHTML = "";
-      // Teat Spray Check
-      const teatSprayContainer = document.createElement("div");
-      teatSprayContainer.classList.add("checklist-item");
-      const labelTeat = document.createElement("label");
-      labelTeat.textContent = "Teat Spray Check";
-      teatSprayContainer.appendChild(labelTeat);
-      const statusSelectTeat = document.createElement("select");
-      statusSelectTeat.classList.add("form-select");
-      statusSelectTeat.name = "status-teat-spray-check";
-      statusSelectTeat.innerHTML = `
-        <option value="ok">OK</option>
-        <option value="attention-required">Attention Required</option>
-        <option value="na">N/A</option>
-        <option value="not-checked">Not Checked</option>
-      `;
-      teatSprayContainer.appendChild(statusSelectTeat);
-      const commentsInputTeat = document.createElement("input");
-      commentsInputTeat.type = "text";
-      commentsInputTeat.classList.add("form-control");
-      commentsInputTeat.name = "comments-teat-spray-check";
-      commentsInputTeat.placeholder = "Comments";
-      commentsInputTeat.setAttribute("spellcheck", "true");
-      commentsInputTeat.setAttribute("autocorrect", "off");
-      teatSprayContainer.appendChild(commentsInputTeat);
-      for (let i = 1; i <= 2; i++) {
-        const imageUpload = document.createElement("input");
-        imageUpload.type = "file";
-        imageUpload.classList.add("form-control", "image-upload");
-        imageUpload.style.display = "none";
-        teatSprayContainer.appendChild(imageUpload);
-        const imagePreview = document.createElement("img");
-        imagePreview.classList.add("image-preview");
-        teatSprayContainer.appendChild(imagePreview);
-      }
-      statusSelectTeat.addEventListener("change", () => {
-        const allInputs = teatSprayContainer.querySelectorAll('input[type="file"]');
-        if (statusSelectTeat.value === "attention-required") {
-          allInputs.forEach(inp => inp.style.display = "block");
-        } else {
-          allInputs.forEach(inp => inp.style.display = "none");
-        }
-      });
-      const ratioLabel = document.createElement("label");
-      ratioLabel.textContent = "Teat Spray Dilution Ratio:";
-      teatSprayContainer.appendChild(ratioLabel);
-      const ratioInput = document.createElement("input");
-      ratioInput.type = "text";
-      ratioInput.classList.add("form-control");
-      ratioInput.name = "teat-spray-dilution";
-      ratioInput.id = "teat-dilution";
-      ratioInput.setAttribute("list", "teat-dilution-list");
-      ratioInput.placeholder = "Type or select e.g. 1:5";
-      ratioInput.setAttribute("autocapitalize", "words");
-      ratioInput.setAttribute("autocorrect", "off");
-      ratioInput.setAttribute("spellcheck", "false");
-      teatSprayContainer.appendChild(ratioInput);
-      const ratioDataList = document.createElement("datalist");
-      ratioDataList.id = "teat-dilution-list";
-      teatSprayContainer.appendChild(ratioDataList);
-      const existingRatios = await db.teatSprayRatios.toArray();
-      const allRatios = ["1:4"];
-      existingRatios.forEach(r => { if (!allRatios.includes(r.ratio)) { allRatios.push(r.ratio); } });
-      ratioDataList.innerHTML = "";
-      allRatios.forEach(r => { 
-        const opt = document.createElement("option"); 
-        opt.value = r; 
-        ratioDataList.appendChild(opt);
-      });
-      ratioInput.addEventListener("blur", async () => {
-        ratioInput.value = toTitleCase(ratioInput.value.trim());
-        const typedRatio = ratioInput.value;
-        if (typedRatio && !allRatios.includes(typedRatio)) {
-          await db.teatSprayRatios.add({ ratio: typedRatio });
-          allRatios.push(typedRatio);
-          const newOpt = document.createElement("option");
-          newOpt.value = typedRatio;
-          ratioDataList.appendChild(newOpt);
-        }
-      });
-      container.appendChild(teatSprayContainer);
-      
-      // Chemical Check
-      const chemicalContainer = document.createElement("div");
-      chemicalContainer.classList.add("checklist-item");
-      const labelChemical = document.createElement("label");
-      labelChemical.textContent = "Chemical Check";
-      chemicalContainer.appendChild(labelChemical);
-      const statusSelectChemical = document.createElement("select");
-      statusSelectChemical.classList.add("form-select");
-      statusSelectChemical.name = "status-chemical-check";
-      statusSelectChemical.innerHTML = `
-        <option value="ok">OK</option>
-        <option value="attention-required">Attention Required</option>
-        <option value="na">N/A</option>
-        <option value="not-checked">Not Checked</option>
-      `;
-      chemicalContainer.appendChild(statusSelectChemical);
-      const commentsInputChemical = document.createElement("input");
-      commentsInputChemical.type = "text";
-      commentsInputChemical.classList.add("form-control");
-      commentsInputChemical.name = "comments-chemical-check";
-      commentsInputChemical.placeholder = "Comments";
-      commentsInputChemical.setAttribute("spellcheck", "true");
-      commentsInputChemical.setAttribute("autocorrect", "off");
-      chemicalContainer.appendChild(commentsInputChemical);
-      for (let i = 1; i <= 2; i++) {
-        const imageUpload = document.createElement("input");
-        imageUpload.type = "file";
-        imageUpload.classList.add("form-control", "image-upload");
-        imageUpload.style.display = "none";
-        chemicalContainer.appendChild(imageUpload);
-        const imagePreview = document.createElement("img");
-        imagePreview.classList.add("image-preview");
-        chemicalContainer.appendChild(imagePreview);
-      }
-      statusSelectChemical.addEventListener("change", () => {
-        const allInputs = chemicalContainer.querySelectorAll('input[type="file"]');
-        if (statusSelectChemical.value === "attention-required") {
-          allInputs.forEach(inp => inp.style.display = "block");
-        } else {
-          allInputs.forEach(inp => inp.style.display = "none");
-        }
-      });
-      container.appendChild(chemicalContainer);
-    }
+    // Note: Additional Checks section has been removed.
     
     function loadFormDataFromRecord(record) {
       const data = record.formData || {};
@@ -711,13 +550,12 @@
       for (let key in data) {
         if (key === "checklistItems") continue;
         const field = document.getElementById(key) || document.getElementsByName(key)[0];
-        if (field) { field.value = data[key]; }
+        if (field) field.value = data[key];
       }
       if (data.checklistItems) {
         const containers = [
           ...document.getElementById("health-safety-top").children,
           ...document.getElementById("checklist-items").children,
-          ...document.getElementById("additional-checks").children,
           ...document.getElementById("silo-checklist").children
         ];
         containers.forEach(container => {
@@ -732,7 +570,7 @@
               statusSelect.dispatchEvent(new Event("change"));
             }
             const commentsInput = container.querySelector('input[type="text"]');
-            if (commentsInput) { commentsInput.value = comments; }
+            if (commentsInput) commentsInput.value = comments;
             if (imagesBase64 && imagesBase64.length > 0) {
               const previews = container.querySelectorAll(".image-preview");
               imagesBase64.forEach((img64, i) => {
@@ -750,7 +588,7 @@
     function clearEntireForm() {
       document.getElementById("hygiene-checklist-form").reset();
       const imageUploads = document.querySelectorAll(".image-upload");
-      imageUploads.forEach(inp => { inp.style.display = "none"; });
+      imageUploads.forEach(inp => { inp.style.display = "block"; });
       const previews = document.querySelectorAll(".image-preview");
       previews.forEach(img => { img.src = ""; img.style.display = "none"; });
     }
@@ -766,7 +604,6 @@
       const containersToCheck = [
         document.getElementById("health-safety-top").children,
         document.getElementById("checklist-items").children,
-        document.getElementById("additional-checks").children,
         document.getElementById("silo-checklist").children
       ];
       const checklistItemsData = {};
@@ -864,11 +701,10 @@
       const containers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
-        ...document.getElementById("additional-checks").children,
         ...document.getElementById("silo-checklist").children
       ];
       const itemDataArray = [];
-      containers.forEach((item) => {
+      containers.forEach(item => {
         const labelEl = item.querySelector("label");
         if (!labelEl) return;
         const itemName = labelEl.textContent;
@@ -876,17 +712,26 @@
         const status = statusSelect ? statusSelect.value : "";
         const commentsInput = item.querySelector('input[type="text"]');
         let comments = commentsInput ? commentsInput.value : "";
-        if (itemName === "Teat Spray Check") {
-          const ratioField = item.querySelector("#teat-dilution");
-          if (ratioField && ratioField.value.trim()) {
-            comments += comments ? ` | Ratio: ${ratioField.value}` : `Ratio: ${ratioField.value}`;
+        // Include calibration fields if present
+        if (itemName === "Acid Flow Meter" ||
+            itemName === "Chlor Alkali Flow Meter" ||
+            itemName === "Teat Concentrate Flow Meter" ||
+            itemName === "Water Flow Meter") {
+          // Append calibration details if filled in (all calibration fields are always visible now)
+          const pulseOld = fd.get(itemName.toLowerCase().replace(/ /g, "-") + "-pulse-old") || "";
+          const pulseNew = fd.get(itemName.toLowerCase().replace(/ /g, "-") + "-pulse-new") || "";
+          const newTest = fd.get(itemName.toLowerCase().replace(/ /g, "-") + "-new-test-physical") || "";
+          const newSystem = fd.get(itemName.toLowerCase().replace(/ /g, "-") + "-new-system-result") || "";
+          if (pulseOld.trim() || pulseNew.trim() || newTest.trim() || newSystem.trim()) {
+            comments += comments ? " | " : "";
+            comments += `Calibration: Old ${pulseOld}, New ${pulseNew}, Test ${newTest}, System ${newSystem}`;
           }
         }
         const imgs = item.querySelectorAll('input[type="file"]');
         let imageFiles = [];
         if (imgs.length > 0) {
-          if (imgs[0].files[0]) { imageFiles.push(imgs[0].files[0]); }
-          if (imgs[1].files[0]) { imageFiles.push(imgs[1].files[0]); }
+          if (imgs[0].files[0]) imageFiles.push(imgs[0].files[0]);
+          if (imgs[1].files[0]) imageFiles.push(imgs[1].files[0]);
         }
         if (imageFiles.length === 0 && window.restoredDraft) {
           const key = labelEl.textContent.trim();
@@ -903,7 +748,7 @@
       
       let pendingImages = 0;
       let photoStore = [];
-      itemDataArray.forEach((obj) => {
+      itemDataArray.forEach(obj => {
         if (obj.imageFiles.length > 0) {
           const p = { itemName: obj.itemName, images: [] };
           obj.imageFiles.forEach((file, idx) => {
@@ -912,7 +757,7 @@
             } else {
               pendingImages++;
               const reader = new FileReader();
-              reader.onload = (evt) => {
+              reader.onload = evt => {
                 p.images[idx] = evt.target.result;
                 pendingImages--;
                 if (pendingImages === 0) finalizePDF();
@@ -929,21 +774,22 @@
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 80;
         try {
+          // Draw a smaller logo (150px width) at the top center
           const logoRef = storage.ref("Agora Logo/6-1YdaEP.jpeg");
           const logoUrl = await logoRef.getDownloadURL();
           const logoBlob = await fetch(logoUrl).then(res => res.blob());
           const logoBase64 = await blobToBase64(logoBlob);
           const pageWidth = pdf.internal.pageSize.getWidth();
+          const logoWidth = 150;
           const imgProps = pdf.getImageProperties(logoBase64);
-          const imgWidth = pageWidth - 80;
-          const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-          const x = (pageWidth - imgWidth) / 2;
-          pdf.addImage(logoBase64, "JPEG", x, 40, imgWidth, imgHeight);
+          const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+          const x = (pageWidth - logoWidth) / 2;
+          pdf.addImage(logoBase64, "JPEG", x, 40, logoWidth, logoHeight);
           pdf.setFontSize(12);
           pdf.setTextColor("#000");
           pdf.setFont("helvetica", "bold");
-          pdf.text("Farm Details:", 40, imgHeight + 60);
-          currentY = imgHeight + 80;
+          pdf.text("Farm Details:", 40, logoHeight + 60);
+          currentY = logoHeight + 80;
         } catch (err) {
           console.error("Logo error:", err);
           pdf.setFontSize(12);
@@ -1016,7 +862,7 @@
           const acidPulseNew = fd.get("acid-pulse-new") || "";
           const acidNewTest = fd.get("acid-new-test-physical") || "";
           const acidNewSystem = fd.get("acid-new-system-result") || "";
-          pdf.text(`Calibration: Pulse Old: ${acidPulseOld}, Pulse New: ${acidPulseNew}, New Test: ${acidNewTest} ml, New System: ${acidNewSystem} ml`, 40, afterTableY);
+          pdf.text(`Calibration: Old ${acidPulseOld}, New ${acidPulseNew}, Test ${acidNewTest} ml, System ${acidNewSystem} ml`, 40, afterTableY);
           afterTableY += 15;
         }
         const chlorPhysical = fd.get("chlor-flow-physical") || "";
@@ -1028,7 +874,7 @@
           const chlorPulseNew = fd.get("chlor-pulse-new") || "";
           const chlorNewTest = fd.get("chlor-new-test-physical") || "";
           const chlorNewSystem = fd.get("chlor-new-system-result") || "";
-          pdf.text(`Calibration: Pulse Old: ${chlorPulseOld}, Pulse New: ${chlorPulseNew}, New Test: ${chlorNewTest} ml, New System: ${chlorNewSystem} ml`, 40, afterTableY);
+          pdf.text(`Calibration: Old ${chlorPulseOld}, New ${chlorPulseNew}, Test ${chlorNewTest} ml, System ${chlorNewSystem} ml`, 40, afterTableY);
           afterTableY += 15;
         }
         const teatPhysical = fd.get("teat-flow-physical") || "";
@@ -1040,7 +886,7 @@
           const teatPulseNew = fd.get("teat-pulse-new") || "";
           const teatNewTest = fd.get("teat-new-test-physical") || "";
           const teatNewSystem = fd.get("teat-new-system-result") || "";
-          pdf.text(`Calibration: Pulse Old: ${teatPulseOld}, Pulse New: ${teatPulseNew}, New Test: ${teatNewTest} ml, New System: ${teatNewSystem} ml`, 40, afterTableY);
+          pdf.text(`Calibration: Old ${teatPulseOld}, New ${teatPulseNew}, Test ${teatNewTest} ml, System ${teatNewSystem} ml`, 40, afterTableY);
           afterTableY += 15;
         }
         const waterPhysical = fd.get("water-flow-physical") || "";
@@ -1052,7 +898,7 @@
           const waterPulseNew = fd.get("water-pulse-new") || "";
           const waterNewTest = fd.get("water-new-test-physical") || "";
           const waterNewSystem = fd.get("water-new-system-result") || "";
-          pdf.text(`Calibration: Pulse Old: ${waterPulseOld}, Pulse New: ${waterPulseNew}, New Test: ${waterNewTest} ml, New System: ${waterNewSystem} ml`, 40, afterTableY);
+          pdf.text(`Calibration: Old ${waterPulseOld}, New ${waterPulseNew}, Test ${waterNewTest} ml, System ${waterNewSystem} ml`, 40, afterTableY);
           afterTableY += 15;
         }
         const pdfBlob = pdf.output("blob");
@@ -1140,7 +986,7 @@
         const backBtn = document.createElement("button");
         backBtn.textContent = "Back to Records";
         backBtn.className = "back-button";
-        backBtn.addEventListener("click", goBackToRecords);
+        backBtn.addEventListener("click", () => { loadAllRecords(); });
         recordList.appendChild(backBtn);
       } catch (err) {
         console.error("Error fetching record files:", err);
@@ -1162,26 +1008,6 @@
       document.getElementById("record-container").style.display = "none";
     }
     
-    function goBackToRecords() { loadAllRecords(); }
-    
-    function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
-      const physicalInput = document.getElementById(physicalId);
-      const systemInput = document.getElementById(systemId);
-      const calibrationContainer = document.getElementById(calibrationId);
-      function updateCalibrationDisplay() {
-        const physicalValue = parseFloat(physicalInput.value);
-        const systemValue = parseFloat(systemInput.value);
-        if (!isNaN(physicalValue) && !isNaN(systemValue)) {
-          const tolerance = 0.05 * physicalValue;
-          calibrationContainer.style.display = Math.abs(physicalValue - systemValue) > tolerance ? "block" : "none";
-        } else {
-          calibrationContainer.style.display = "none";
-        }
-      }
-      physicalInput.addEventListener("input", updateCalibrationDisplay);
-      systemInput.addEventListener("input", updateCalibrationDisplay);
-    }
-    
     document.addEventListener("DOMContentLoaded", async () => {
       const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name", "inspection-completed-by"];
       fieldsToAutoCap.forEach(autoCapitalizeInput);
@@ -1189,15 +1015,12 @@
       createHealthSafetyItems("health-safety-top");
       createChecklistItems();
       createSiloChecklist();
-      await createAdditionalChecks();
+      // Removed Additional Checks section.
       const form = document.getElementById("hygiene-checklist-form");
       form.addEventListener("input", saveFormData);
       form.addEventListener("change", saveFormData);
       uploadPendingPDFs();
-      setupFlowMeterTolerance("acid-flow-physical", "acid-flow-system", "acid-calibration");
-      setupFlowMeterTolerance("chlor-flow-physical", "chlor-flow-system", "chlor-calibration");
-      setupFlowMeterTolerance("teat-flow-physical", "teat-flow-system", "teat-calibration");
-      setupFlowMeterTolerance("water-flow-physical", "water-flow-system", "water-calibration");
+      // Removed flow meter tolerance conditional logic so calibration fields always show.
     });
   </script>
 </body>
