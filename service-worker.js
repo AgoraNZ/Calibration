@@ -1,5 +1,5 @@
 // Bump the cache name version each time you release a new update:
-const CACHE_NAME = 'agora-form-cache-v2';
+const CACHE_NAME = 'agora-form-cache-v3';
 
 const urlsToCache = [
   '/',
@@ -7,7 +7,7 @@ const urlsToCache = [
   'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css',
   // Updated logo from "Agora Logo" folder:
   'https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media',
-  // Firebase and other libraries
+  // Firebase libraries and additional scripts:
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js',
   'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js',
@@ -27,25 +27,20 @@ self.addEventListener('install', function (event) {
         console.error('Failed to cache resources:', error);
       })
   );
-  // Force the waiting service worker to become the active service worker.
+  // Force the waiting service worker to become active immediately.
   self.skipWaiting();
 });
 
 self.addEventListener('fetch', function (event) {
   event.respondWith(
     caches.match(event.request).then(function (response) {
-      if (response) {
-        return response;
-      }
+      if (response) return response;
       return fetch(event.request).then(function (response) {
-        if (!response || response.status !== 200) {
-          return response;
-        }
+        if (!response || response.status !== 200) return response;
         const responseToCache = response.clone();
-        caches.open(CACHE_NAME)
-          .then(function (cache) {
-            cache.put(event.request, responseToCache);
-          });
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(event.request, responseToCache);
+        });
         return response;
       });
     }).catch(function () {
