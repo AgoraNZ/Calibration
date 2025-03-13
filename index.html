@@ -33,7 +33,7 @@
     label { color: #000; margin-top: 10px; }
     button {
       background-color: #FFD700;
-      color: #000; /* Changed from white (#fff) to black */
+      color: #000; /* Button text now black */
       border: none;
       padding: 10px 20px;
       cursor: pointer;
@@ -836,7 +836,7 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Flow Meters Data with extra calibration details if applicable
+      // Process Flow Meters Data with extra calibration info if provided
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": "acid-flow",
@@ -849,29 +849,24 @@
          const physical = fd.get(prefix + "-physical") || "";
          const system = fd.get(prefix + "-system") || "";
          flowMeters.push([meter, physical + " ml", system + " ml"]);
-         if(physical !== "" && system !== ""){
-            let p = parseFloat(physical);
-            let s = parseFloat(system);
-            let tolerance = 0.05 * p;
-            if(Math.abs(p - s) > tolerance){
-               let pulseOld = fd.get(prefix + "-pulse-old") || "";
-               let pulseNew = fd.get(prefix + "-pulse-new") || "";
-               let newTestPhysical = fd.get(prefix + "-new-test-physical") || "";
-               let newSystemResult = fd.get(prefix + "-new-system-result") || "";
-               if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
-                  let extraDetails = "";
-                  if(pulseOld) extraDetails += "Pulse Old: " + pulseOld;
-                  if(pulseNew) extraDetails += (extraDetails ? ", " : "") + "Pulse New: " + pulseNew;
-                  let extraDetails2 = "";
-                  if(newTestPhysical) extraDetails2 += "Test Physical: " + newTestPhysical;
-                  if(newSystemResult) extraDetails2 += (extraDetails2 ? ", " : "") + "System Result: " + newSystemResult;
-                  flowMeters.push(["", extraDetails, extraDetails2]);
-               }
-            }
+         // Check for extra calibration info regardless of tolerance:
+         let pulseOld = fd.get(prefix + "-pulse-old") || "";
+         let pulseNew = fd.get(prefix + "-pulse-new") || "";
+         let newTestPhysical = fd.get(prefix + "-new-test-physical") || "";
+         let newSystemResult = fd.get(prefix + "-new-system-result") || "";
+         if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
+            let extraDetails = "";
+            if(pulseOld) extraDetails += "Pulse Old: " + pulseOld;
+            if(pulseNew) extraDetails += (extraDetails ? ", " : "") + "Pulse New: " + pulseNew;
+            let extraDetails2 = "";
+            if(newTestPhysical) extraDetails2 += "Test Physical: " + newTestPhysical;
+            if(newSystemResult) extraDetails2 += (extraDetails2 ? ", " : "") + "System Result: " + newSystemResult;
+            // Use a non-empty space in the first column so the row appears directly under the main row.
+            flowMeters.push([" ", extraDetails, extraDetails2]);
          }
       }
       
-      // Define the function to finalize and output the PDF
+      // Function to finalize and output PDF
       function finalizePDF() {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
@@ -953,7 +948,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table with extra calibration details if applicable
+          // Flow Meters Table (with extra calibration details row if provided)
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
@@ -968,7 +963,7 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section – photos now 2.5x larger than before (fixed width set to 250)
+          // Attached Photos Section – photos now drawn 2.5× larger (width = 250px)
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
             if (currentY + 20 > pageHeight) {
@@ -989,7 +984,7 @@
               photoItem.images.forEach((img, idx) => {
                 try {
                   const imgProps = pdf.getImageProperties(img);
-                  const imgWidth = 250; // Increased from 100 to 250
+                  const imgWidth = 250;
                   const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
                   if (currentY + imgHeight > pageHeight) {
                     pdf.addPage();
@@ -1029,7 +1024,6 @@
         }
       }
       
-      // If there are no pending images, finalize the PDF immediately
       if (pendingImages === 0) {
         finalizePDF();
       }
