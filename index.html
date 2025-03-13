@@ -7,7 +7,7 @@
   <title>Agora Reporting Form</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
-    /* Overall background and container styling */
+    /* Overall background set to #d2d7dd */
     body {
       background-color: #d2d7dd;
       color: #000;
@@ -91,11 +91,11 @@
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Logo from Agora Logo folder -->
+    <!-- Small Logo from "Agora Logo" folder -->
     <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
-      <!-- Farm Details -->
+      <!-- Farm Details Section -->
       <div class="section mb-4">
         <h2>Farm Details</h2>
         <label for="dairy-number">Dairy Number:</label>
@@ -150,39 +150,36 @@
         </select>
       </div>
       
-      <!-- Health & Safety -->
+      <!-- Health & Safety Section -->
       <div class="section mb-4">
         <h2>Health & Safety</h2>
         <div id="health-safety-top"></div>
       </div>
       
-      <!-- Plant Checklist -->
+      <!-- Plant Checklist Section -->
       <div class="section mb-4">
         <h2>Plant Checklist</h2>
         <div id="checklist-items"></div>
       </div>
       
-      <!-- Silo Checklist -->
+      <!-- Silo Checklist Section -->
       <div class="section mb-4">
         <h2>Silo Checklist</h2>
         <div id="silo-checklist"></div>
       </div>
       
-      <!-- Additional Checks -->
+      <!-- Additional Checks Section -->
       <div class="section mb-4">
         <h2>Additional Checks</h2>
         <div id="additional-checks"></div>
       </div>
       
-      <!-- Temperature Measurements (existing measurements, if needed) -->
-      <!-- Remove old simple temperature sensors block -->
-      
-      <!-- New Temperature Sensors Block -->
+      <!-- New Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
       </div>
       
-      <!-- Flow Meters -->
+      <!-- Flow Meters Section -->
       <div class="section mb-4" id="flow-meters-section">
         <h2>Flow Meters</h2>
         <!-- Acid Flow Meter -->
@@ -390,7 +387,7 @@
       await checkOrCreateFormRecord();
     }
     
-    /* Checklist Items, Silo Checklist, Additional Checks – similar to original */
+    /* Create checklist items similar to original */
     function createHealthSafetyItems(containerId) {
       const container = document.getElementById(containerId);
       container.innerHTML = "";
@@ -417,7 +414,7 @@
       commentsInput.setAttribute("spellcheck", "true");
       commentsInput.setAttribute("autocorrect", "off");
       itemContainer.appendChild(commentsInput);
-      // File upload inputs (hidden by default)
+      // Two file inputs hidden by default
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -429,11 +426,9 @@
       }
       statusSelect.addEventListener("change", () => {
         const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
-        if (statusSelect.value === "attention-required") {
-          fileInputs.forEach(inp => inp.style.display = "block");
-        } else {
-          fileInputs.forEach(inp => inp.style.display = "none");
-        }
+        fileInputs.forEach(inp => {
+          inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+        });
       });
       container.appendChild(itemContainer);
     }
@@ -545,7 +540,7 @@
     async function createAdditionalChecks() {
       const container = document.getElementById("additional-checks");
       container.innerHTML = "";
-      // Teat Spray Check (similar to other checklist items)
+      // Teat Spray Check
       const teatSprayContainer = document.createElement("div");
       teatSprayContainer.classList.add("checklist-item");
       const labelTeat = document.createElement("label");
@@ -665,17 +660,14 @@
       container.appendChild(chemicalContainer);
     }
     
-    /* New Temperature Sensor Item – similar to checklist items */
+    /* New Temperature Sensor Item */
     function createTemperatureSensorItem() {
       const container = document.getElementById("temperature-sensors-container");
-      // Create one sensor item block
       const sensorItem = document.createElement("div");
       sensorItem.classList.add("checklist-item");
-      // Main label for Temperature Sensor
       const mainLabel = document.createElement("label");
       mainLabel.textContent = "Temperature Sensor";
       sensorItem.appendChild(mainLabel);
-      // Status dropdown for temperature sensor
       const statusSelect = document.createElement("select");
       statusSelect.classList.add("form-select");
       statusSelect.name = "tempSensor-status";
@@ -687,7 +679,6 @@
       `;
       sensorItem.appendChild(statusSelect);
       
-      // Extra fields container (hidden by default)
       const extraContainer = document.createElement("div");
       extraContainer.classList.add("temp-extra-container");
       // Sensor Type
@@ -727,7 +718,7 @@
       tempCommentsInput.classList.add("form-control");
       tempCommentsInput.name = "tempSensor-comments";
       extraContainer.appendChild(tempCommentsInput);
-      // Two photo upload inputs for temperature sensor
+      // Two photo uploads
       for (let i = 0; i < 2; i++) {
         const fileInput = document.createElement("input");
         fileInput.type = "file";
@@ -737,18 +728,14 @@
         preview.classList.add("image-preview");
         extraContainer.appendChild(preview);
       }
-      
       sensorItem.appendChild(extraContainer);
-      
-      // Toggle extra fields based on status
       statusSelect.addEventListener("change", () => {
         extraContainer.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
       });
-      
       container.appendChild(sensorItem);
     }
     
-    /* LOAD, CLEAR & SAVE Form Data (including checklist and temperature sensor) */
+    /* LOAD, CLEAR & SAVE Data */
     function loadFormDataFromRecord(record) {
       const data = record.formData || {};
       document.getElementById("dairy-number").value = record.dairyNumber;
@@ -789,25 +776,17 @@
           }
         });
       }
-      // Load temperature sensor data if saved
       if (data.temperatureSensors) {
         const tsData = data.temperatureSensors;
         const container = document.getElementById("temperature-sensors-container");
-        // Assuming one temperature sensor item:
         const sensorItem = container.querySelector(".checklist-item");
         if (sensorItem) {
-          const statusSelect = sensorItem.querySelector("select");
-          statusSelect.value = tsData.status || "";
-          statusSelect.dispatchEvent(new Event("change"));
-          const sensorTypeInput = sensorItem.querySelector("input[name='tempSensor-type']");
-          if (sensorTypeInput) sensorTypeInput.value = tsData.type || "";
-          const testedInput = sensorItem.querySelector("input[name='tempSensor-tested']");
-          if (testedInput) testedInput.value = tsData.tested || "";
-          const systemInput = sensorItem.querySelector("input[name='tempSensor-system']");
-          if (systemInput) systemInput.value = tsData.system || "";
-          const tempCommentsInput = sensorItem.querySelector("input[name='tempSensor-comments']");
-          if (tempCommentsInput) tempCommentsInput.value = tsData.comments || "";
-          // Images could be loaded similarly if stored
+          sensorItem.querySelector("select").value = tsData.status || "";
+          sensorItem.querySelector("select").dispatchEvent(new Event("change"));
+          sensorItem.querySelector("input[name='tempSensor-type']").value = tsData.type || "";
+          sensorItem.querySelector("input[name='tempSensor-tested']").value = tsData.tested || "";
+          sensorItem.querySelector("input[name='tempSensor-system']").value = tsData.system || "";
+          sensorItem.querySelector("input[name='tempSensor-comments']").value = tsData.comments || "";
         }
       }
     }
@@ -828,53 +807,48 @@
       const form = document.getElementById("hygiene-checklist-form");
       const formDataObj = new FormData(form);
       const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
-      // Save checklist items
+      // Process checklist items with photo handling
       const checklistContainers = [
-        document.getElementById("health-safety-top").children,
-        document.getElementById("checklist-items").children,
-        document.getElementById("additional-checks").children,
-        document.getElementById("silo-checklist").children
+        ...document.getElementById("health-safety-top").children,
+        ...document.getElementById("checklist-items").children,
+        ...document.getElementById("additional-checks").children,
+        ...document.getElementById("silo-checklist").children
       ];
       const checklistItemsData = {};
-      for (let containers of checklistContainers) {
-        for (let item of containers) {
-          const label = item.querySelector("label");
-          if (!label) continue;
-          const key = label.textContent.trim();
-          const statusSelect = item.querySelector("select");
-          const status = statusSelect ? statusSelect.value : "";
-          const commentsInput = item.querySelector('input[type="text"]');
-          const comments = commentsInput ? commentsInput.value : "";
-          let imagesBase64 = [];
-          const fileInputs = item.querySelectorAll('input[type="file"]');
-          for (let fi of fileInputs) {
-            if (fi.files && fi.files[0]) {
-              const base64 = await convertFileToBase64(fi.files[0]);
-              imagesBase64.push(base64);
-            }
+      for (let container of checklistContainers) {
+        const label = container.querySelector("label");
+        if (!label) continue;
+        const key = label.textContent.trim();
+        const statusSelect = container.querySelector("select");
+        const status = statusSelect ? statusSelect.value : "";
+        const commentsInput = container.querySelector('input[type="text"]');
+        let comments = commentsInput ? commentsInput.value : "";
+        let imagesBase64 = [];
+        const fileInputs = container.querySelectorAll('input[type="file"]');
+        for (let fi of fileInputs) {
+          if (fi.files && fi.files[0]) {
+            const base64 = await convertFileToBase64(fi.files[0]);
+            imagesBase64.push(base64);
           }
-          checklistItemsData[key] = { status, comments, imagesBase64 };
         }
+        if (status === "attention-required" && imagesBase64.length > 0) {
+          const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+        }
+        checklistItemsData[key] = { status, comments, imagesBase64 };
       }
       data.checklistItems = checklistItemsData;
       
-      // Save temperature sensor data from our custom block
-      const tempSensorContainer = document.getElementById("temperature-sensors-container");
-      const sensorItem = tempSensorContainer.querySelector(".checklist-item");
-      if (sensorItem) {
-        const tsStatus = sensorItem.querySelector("select").value;
-        const tsType = sensorItem.querySelector("input[name='tempSensor-type']").value;
-        const tsTested = sensorItem.querySelector("input[name='tempSensor-tested']").value;
-        const tsSystem = sensorItem.querySelector("input[name='tempSensor-system']").value;
-        const tsComments = sensorItem.querySelector("input[name='tempSensor-comments']").value;
-        // (For brevity, images not collected here, but can be added similarly)
-        data.temperatureSensors = {
-          status: tsStatus,
-          type: tsType,
-          tested: tsTested,
-          system: tsSystem,
-          comments: tsComments
-        };
+      // Save Temperature Sensor data
+      const tsContainer = document.getElementById("temperature-sensors-container");
+      const tsItem = tsContainer.querySelector(".checklist-item");
+      if (tsItem) {
+        const tsStatus = tsItem.querySelector("select").value;
+        const tsType = tsItem.querySelector("input[name='tempSensor-type']").value;
+        const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
+        const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
+        const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
+        data.temperatureSensors = { status: tsStatus, type: tsType, tested: tsTested, system: tsSystem, comments: tsComments };
       }
       
       record.formData = data;
@@ -942,7 +916,7 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Collect checklist items data (as before)
+      // Process checklist items (with photo note) and collect photos
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -950,21 +924,47 @@
         ...document.getElementById("silo-checklist").children
       ];
       const checklistData = [];
+      let pendingImages = 0;
+      let photoStore = [];
       checklistContainers.forEach(item => {
         const labelEl = item.querySelector("label");
         if (!labelEl) return;
         const itemName = labelEl.textContent;
         const status = item.querySelector("select")?.value || "";
-        const comments = item.querySelector("input[type='text']")?.value || "";
+        let comments = item.querySelector("input[type='text']")?.value || "";
+        const fileInputs = item.querySelectorAll("input[type='file']");
+        let images = [];
+        fileInputs.forEach(inp => {
+          if (inp.files && inp.files[0]) { images.push(inp.files[0]); }
+        });
+        if (status === "attention-required" && images.length > 0) {
+          const photoNote = images.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+          const p = { itemName, images: [] };
+          images.forEach((file, idx) => {
+            if (typeof file === "string") {
+              p.images[idx] = file;
+            } else {
+              pendingImages++;
+              const reader = new FileReader();
+              reader.onload = (evt) => {
+                p.images[idx] = evt.target.result;
+                pendingImages--;
+                if (pendingImages === 0) finalizePDF();
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+          photoStore.push(p);
+        }
         checklistData.push([itemName, status, comments]);
       });
       
-      // Collect Temperature Sensor data
+      // Process Temperature Sensor Data
       let tempSensorData = [];
       const tsContainer = document.getElementById("temperature-sensors-container");
       const tsItem = tsContainer.querySelector(".checklist-item");
       if (tsItem) {
-        const tsStatus = tsItem.querySelector("select").value;
         const tsType = tsItem.querySelector("input[name='tempSensor-type']").value;
         const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
         const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
@@ -972,117 +972,156 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // For flow meters, create rows for each meter (for brevity, we show as text)
-      const flowMeters = [];
+      // Process Flow Meters Data
+      let flowMeters = [];
       const fmNames = ["Acid Flow Meter", "Chlor Alkali Flow Meter", "Teat Concentrate Flow Meter", "Water Flow Meter"];
       fmNames.forEach(name => {
-        const physical = fd.get(name.toLowerCase().replace(/\s/g, "-") + "-physical") || "";
-        const system = fd.get(name.toLowerCase().replace(/\s/g, "-") + "-system") || "";
+        const key = name.toLowerCase().replace(/\s/g, "-");
+        const physical = fd.get(key + "-physical") || "";
+        const system = fd.get(key + "-system") || "";
         flowMeters.push([name, physical + " ml", system + " ml"]);
       });
       
-      // Generate PDF using jsPDF and autoTable
-      const pdf = new jsPDF("p", "pt", "a4");
-      let currentY = 40;
-      try {
-        const logoRef = storage.ref("Agora Logo/6-1YdaEP.jpeg");
-        const logoUrl = await logoRef.getDownloadURL();
-        const logoBlob = await fetch(logoUrl).then(res => res.blob());
-        const logoBase64 = await convertFileToBase64(logoBlob);
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const imgProps = pdf.getImageProperties(logoBase64);
-        const imgWidth = pageWidth - 80;
-        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-        const x = (pageWidth - imgWidth) / 2;
-        pdf.addImage(logoBase64, "JPEG", x, currentY, imgWidth, imgHeight);
-        currentY += imgHeight + 20;
-      } catch (err) {
-        console.error("Logo error:", err);
-      }
-      pdf.setFontSize(12);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Farm Details:", 40, currentY);
-      currentY += 20;
-      pdf.setFont("helvetica", "normal");
-      pdf.text("Dairy Company: " + toTitleCase(fd.get("dairy-company") || ""), 40, currentY); currentY += 15;
-      pdf.text("Dairy Number: " + (fd.get("dairy-number") || ""), 40, currentY); currentY += 15;
-      pdf.text("Address: " + toTitleCase(fd.get("address") || ""), 40, currentY); currentY += 15;
-      pdf.text("Customer Name: " + toTitleCase(fd.get("customer-name") || ""), 40, currentY); currentY += 15;
-      pdf.text("Region: " + toTitleCase(fd.get("region") || ""), 40, currentY); currentY += 15;
-      pdf.text("Farm Name: " + toTitleCase(fd.get("farm-name") || ""), 40, currentY); currentY += 15;
-      pdf.text("Island: " + toTitleCase(fd.get("island") || ""), 40, currentY); currentY += 15;
-      pdf.text("Visit Date: " + (fd.get("visit-date") || ""), 40, currentY); currentY += 15;
-      pdf.text("Visit Type: " + (fd.get("visit-type") || ""), 40, currentY); currentY += 15;
-      pdf.text("Inspection Start Time: " + (fd.get("inspection-start-time") || ""), 40, currentY); currentY += 15;
-      pdf.text("Inspection End Time: " + (fd.get("inspection-end-time") || ""), 40, currentY); currentY += 15;
-      pdf.text("Inspection Completed By: " + toTitleCase(fd.get("inspection-completed-by") || ""), 40, currentY); currentY += 15;
-      pdf.text("Call Type: " + toTitleCase(fd.get("call-type") || ""), 40, currentY); currentY += 20;
-      
-      // Checklist Items Table
-      pdf.setFont("helvetica", "bold");
-      pdf.text("Checklist Items:", 40, currentY);
-      currentY += 10;
-      pdf.autoTable({
-        startY: currentY,
-        head: [["Item", "Status", "Comments"]],
-        body: checklistData,
-        styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: "#002B5C", textColor: "#fff" }
-      });
-      currentY = pdf.lastAutoTable.finalY + 20;
-      
-      // Temperature Sensors Table (if data exists)
-      if (tempSensorData.length > 0) {
-        pdf.setFont("helvetica", "bold");
-        pdf.text("Temperature Sensors:", 40, currentY);
-        currentY += 10;
-        pdf.autoTable({
-          startY: currentY,
-          head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
-          body: tempSensorData,
-          styles: { fontSize: 10, cellPadding: 5 },
-          headStyles: { fillColor: "#002B5C", textColor: "#fff" }
-        });
-        currentY = pdf.lastAutoTable.finalY + 20;
-      }
-      
-      // Flow Meters Table
-      if (flowMeters.length > 0) {
-        pdf.setFont("helvetica", "bold");
-        pdf.text("Flow Meters:", 40, currentY);
-        currentY += 10;
-        pdf.autoTable({
-          startY: currentY,
-          head: [["Meter", "Physical Test", "System Read"]],
-          body: flowMeters,
-          styles: { fontSize: 10, cellPadding: 5 },
-          headStyles: { fillColor: "#002B5C", textColor: "#fff" }
-        });
-        currentY = pdf.lastAutoTable.finalY + 20;
-      }
-      
-      const pdfBlob = pdf.output("blob");
-      const timestamp = new Date().toISOString().split("T")[0];
-      const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
-      let uploadSuccessful = false;
-      if (navigator.onLine) {
+      // Function to finalize and output PDF
+      function finalizePDF() {
+        const pdf = new jsPDF("p", "pt", "a4");
+        let currentY = 40;
+        // Draw a small logo (fixed width of 100)
         try {
-          await uploadSinglePDF(fd.get("dairy-number"), fileName, pdfBlob);
-          uploadSuccessful = true;
-          console.log("PDF uploaded to Agora Customers folder.");
+          storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL().then(url => {
+            fetch(url)
+              .then(res => res.blob())
+              .then(blob => convertFileToBase64(blob))
+              .then(logoBase64 => {
+                const img = new Image();
+                img.onload = function() {
+                  const fixedLogoWidth = 100;
+                  const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+                  pdf.addImage(logoBase64, "JPEG", 40, 40, fixedLogoWidth, fixedLogoHeight);
+                  currentY = 40 + fixedLogoHeight + 20;
+                  addFarmDetailsAndTables(pdf);
+                };
+                img.src = logoBase64;
+              })
+              .catch(err => {
+                console.error("Logo error:", err);
+                addFarmDetailsAndTables(pdf);
+              });
+          });
         } catch (err) {
-          console.error("PDF upload failed:", err);
+          console.error("Logo error:", err);
+          addFarmDetailsAndTables(pdf);
+        }
+        
+        function addFarmDetailsAndTables(pdf) {
+          pdf.setFontSize(12);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Farm Details:", 40, currentY);
+          currentY += 20;
+          pdf.setFont("helvetica", "normal");
+          pdf.text("Dairy Company: " + toTitleCase(fd.get("dairy-company") || ""), 40, currentY); currentY += 15;
+          pdf.text("Dairy Number: " + (fd.get("dairy-number") || ""), 40, currentY); currentY += 15;
+          pdf.text("Address: " + toTitleCase(fd.get("address") || ""), 40, currentY); currentY += 15;
+          pdf.text("Customer Name: " + toTitleCase(fd.get("customer-name") || ""), 40, currentY); currentY += 15;
+          pdf.text("Region: " + toTitleCase(fd.get("region") || ""), 40, currentY); currentY += 15;
+          pdf.text("Farm Name: " + toTitleCase(fd.get("farm-name") || ""), 40, currentY); currentY += 15;
+          pdf.text("Island: " + toTitleCase(fd.get("island") || ""), 40, currentY); currentY += 15;
+          pdf.text("Visit Date: " + (fd.get("visit-date") || ""), 40, currentY); currentY += 15;
+          pdf.text("Visit Type: " + (fd.get("visit-type") || ""), 40, currentY); currentY += 15;
+          pdf.text("Inspection Start Time: " + (fd.get("inspection-start-time") || ""), 40, currentY); currentY += 15;
+          pdf.text("Inspection End Time: " + (fd.get("inspection-end-time") || ""), 40, currentY); currentY += 15;
+          pdf.text("Inspection Completed By: " + toTitleCase(fd.get("inspection-completed-by") || ""), 40, currentY); currentY += 15;
+          pdf.text("Call Type: " + toTitleCase(fd.get("call-type") || ""), 40, currentY); currentY += 20;
+          
+          // Checklist Items Table
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Checklist Items:", 40, currentY);
+          currentY += 10;
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Item", "Status", "Comments"]],
+            body: checklistData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          // Temperature Sensors Table
+          if (tempSensorData.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Temperature Sensors:", 40, currentY);
+            currentY += 10;
+            pdf.autoTable({
+              startY: currentY,
+              head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
+              body: tempSensorData,
+              styles: { fontSize: 10, cellPadding: 5 },
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+            });
+            currentY = pdf.lastAutoTable.finalY + 20;
+          }
+          
+          // Flow Meters Table
+          if (flowMeters.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Flow Meters:", 40, currentY);
+            currentY += 10;
+            pdf.autoTable({
+              startY: currentY,
+              head: [["Meter", "Physical Test", "System Read"]],
+              body: flowMeters,
+              styles: { fontSize: 10, cellPadding: 5 },
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" }
+            });
+            currentY = pdf.lastAutoTable.finalY + 20;
+          }
+          
+          // Attached Photos Section
+          if (photoStore.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Attached Photos:", 40, currentY);
+            currentY += 20;
+            photoStore.forEach(photoItem => {
+              pdf.setFont("helvetica", "bold");
+              pdf.text(photoItem.itemName, 40, currentY);
+              currentY += 15;
+              photoItem.images.forEach((img, idx) => {
+                try {
+                  const imgProps = pdf.getImageProperties(img);
+                  const imgWidth = 100;
+                  const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+                  pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
+                } catch(e) {
+                  console.error("Error adding image:", e);
+                }
+              });
+              currentY += 120;
+            });
+          }
+          
+          const pdfBlob = pdf.output("blob");
+          const timestamp = new Date().toISOString().split("T")[0];
+          const fileName = `${fd.get("dairy-number")}-form-${timestamp}.pdf`;
+          let uploadSuccessful = false;
+          if (navigator.onLine) {
+            uploadSinglePDF(fd.get("dairy-number"), fileName, pdfBlob).then(() => {
+              uploadSuccessful = true;
+              console.log("PDF uploaded to Agora Customers folder.");
+            }).catch(err => {
+              console.error("PDF upload failed:", err);
+            });
+          }
+          if (!uploadSuccessful) {
+            db.pdfQueue.add({ dairyNumber: fd.get("dairy-number"), fileName, pdfBlob, uploaded: false });
+            console.log("PDF upload queued for later retry.");
+          }
+          db.forms.delete(fd.get("dairy-number"));
+          pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
+          uploadPendingPDFs();
+          clearEntireForm();
+          location.reload();
         }
       }
-      if (!uploadSuccessful) {
-        await db.pdfQueue.add({ dairyNumber: fd.get("dairy-number"), fileName, pdfBlob, uploaded: false });
-        console.log("PDF upload queued for later retry.");
-      }
-      await db.forms.delete(fd.get("dairy-number"));
-      pdf.save(`Agora_Form_${fd.get("dairy-number")}.pdf`);
-      uploadPendingPDFs();
-      clearEntireForm();
-      location.reload();
     }
     
     function viewRecords() {
@@ -1160,7 +1199,6 @@
     
     function goBackToRecords() { loadAllRecords(); }
     
-    /* Flow Meter Tolerance Logic */
     function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
       const physicalInput = document.getElementById(physicalId);
       const systemInput = document.getElementById(systemId);
@@ -1187,13 +1225,11 @@
       createChecklistItems();
       createSiloChecklist();
       await createAdditionalChecks();
-      // Create a temperature sensor item using our custom function
       createTemperatureSensorItem();
       const form = document.getElementById("hygiene-checklist-form");
       form.addEventListener("input", saveFormData);
       form.addEventListener("change", saveFormData);
       uploadPendingPDFs();
-      // Setup flow meter tolerance checks
       setupFlowMeterTolerance("acid-flow-physical", "acid-flow-system", "acid-calibration");
       setupFlowMeterTolerance("chlor-flow-physical", "chlor-flow-system", "chlor-calibration");
       setupFlowMeterTolerance("teat-flow-physical", "teat-flow-system", "teat-calibration");
