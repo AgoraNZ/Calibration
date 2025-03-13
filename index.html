@@ -168,6 +168,12 @@
         <div id="silo-checklist"></div>
       </div>
       
+      <!-- Additional Checks Section -->
+      <div class="section mb-4">
+        <h2>Additional Checks</h2>
+        <div id="additional-checks"></div>
+      </div>
+      
       <!-- New Temperature Sensors Section -->
       <div class="section mb-4" id="temperature-sensors-container">
         <h2>Temperature Sensors</h2>
@@ -253,7 +259,7 @@
       <button type="button" onclick="generatePDF()">Generate PDF</button>
       <button type="button" onclick="viewRecords()">View All Records</button>
     </form>
-    <div class="version">Version 6.4 (Agora)</div>
+    <div class="version">Version 6.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -529,6 +535,129 @@
         });
         container.appendChild(itemContainer);
       });
+    }
+    
+    async function createAdditionalChecks() {
+      const container = document.getElementById("additional-checks");
+      container.innerHTML = "";
+      // Teat Spray Check
+      const teatSprayContainer = document.createElement("div");
+      teatSprayContainer.classList.add("checklist-item");
+      const labelTeat = document.createElement("label");
+      labelTeat.textContent = "Teat Spray Check";
+      teatSprayContainer.appendChild(labelTeat);
+      const statusSelectTeat = document.createElement("select");
+      statusSelectTeat.classList.add("form-select");
+      statusSelectTeat.name = "status-teat-spray-check";
+      statusSelectTeat.innerHTML = `
+        <option value="ok">OK</option>
+        <option value="attention-required">Attention Required</option>
+        <option value="na">N/A</option>
+        <option value="not-checked">Not Checked</option>
+      `;
+      teatSprayContainer.appendChild(statusSelectTeat);
+      const commentsInputTeat = document.createElement("input");
+      commentsInputTeat.type = "text";
+      commentsInputTeat.classList.add("form-control");
+      commentsInputTeat.name = "comments-teat-spray-check";
+      commentsInputTeat.placeholder = "Comments";
+      commentsInputTeat.setAttribute("spellcheck", "true");
+      commentsInputTeat.setAttribute("autocorrect", "off");
+      teatSprayContainer.appendChild(commentsInputTeat);
+      for (let i = 0; i < 2; i++) {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.classList.add("form-control", "image-upload");
+        teatSprayContainer.appendChild(fileInput);
+        const preview = document.createElement("img");
+        preview.classList.add("image-preview");
+        teatSprayContainer.appendChild(preview);
+      }
+      statusSelectTeat.addEventListener("change", () => {
+        const fileInputs = teatSprayContainer.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(inp => {
+          inp.style.display = (statusSelectTeat.value === "attention-required") ? "block" : "none";
+        });
+      });
+      const ratioLabel = document.createElement("label");
+      ratioLabel.textContent = "Teat Spray Dilution Ratio:";
+      teatSprayContainer.appendChild(ratioLabel);
+      const ratioInput = document.createElement("input");
+      ratioInput.type = "text";
+      ratioInput.classList.add("form-control");
+      ratioInput.name = "teat-spray-dilution";
+      ratioInput.id = "teat-dilution";
+      ratioInput.setAttribute("list", "teat-dilution-list");
+      ratioInput.placeholder = "Type or select e.g. 1:5";
+      ratioInput.setAttribute("autocapitalize", "words");
+      ratioInput.setAttribute("autocorrect", "off");
+      ratioInput.setAttribute("spellcheck", "false");
+      teatSprayContainer.appendChild(ratioInput);
+      const ratioDataList = document.createElement("datalist");
+      ratioDataList.id = "teat-dilution-list";
+      teatSprayContainer.appendChild(ratioDataList);
+      const existingRatios = await db.teatSprayRatios.toArray();
+      const allRatios = ["1:4"];
+      existingRatios.forEach(r => { if (!allRatios.includes(r.ratio)) { allRatios.push(r.ratio); } });
+      ratioDataList.innerHTML = "";
+      allRatios.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r;
+        ratioDataList.appendChild(opt);
+      });
+      ratioInput.addEventListener("blur", async () => {
+        ratioInput.value = toTitleCase(ratioInput.value.trim());
+        const typedRatio = ratioInput.value;
+        if (typedRatio && !allRatios.includes(typedRatio)) {
+          await db.teatSprayRatios.add({ ratio: typedRatio });
+          allRatios.push(typedRatio);
+          const newOpt = document.createElement("option");
+          newOpt.value = typedRatio;
+          ratioDataList.appendChild(newOpt);
+        }
+      });
+      container.appendChild(teatSprayContainer);
+      
+      // Chemical Check
+      const chemicalContainer = document.createElement("div");
+      chemicalContainer.classList.add("checklist-item");
+      const labelChemical = document.createElement("label");
+      labelChemical.textContent = "Chemical Check";
+      chemicalContainer.appendChild(labelChemical);
+      const statusSelectChemical = document.createElement("select");
+      statusSelectChemical.classList.add("form-select");
+      statusSelectChemical.name = "status-chemical-check";
+      statusSelectChemical.innerHTML = `
+        <option value="ok">OK</option>
+        <option value="attention-required">Attention Required</option>
+        <option value="na">N/A</option>
+        <option value="not-checked">Not Checked</option>
+      `;
+      chemicalContainer.appendChild(statusSelectChemical);
+      const commentsInputChemical = document.createElement("input");
+      commentsInputChemical.type = "text";
+      commentsInputChemical.classList.add("form-control");
+      commentsInputChemical.name = "comments-chemical-check";
+      commentsInputChemical.placeholder = "Comments";
+      commentsInputChemical.setAttribute("spellcheck", "true");
+      commentsInputChemical.setAttribute("autocorrect", "off");
+      chemicalContainer.appendChild(commentsInputChemical);
+      for (let i = 0; i < 2; i++) {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.classList.add("form-control", "image-upload");
+        chemicalContainer.appendChild(fileInput);
+        const preview = document.createElement("img");
+        preview.classList.add("image-preview");
+        chemicalContainer.appendChild(preview);
+      }
+      statusSelectChemical.addEventListener("change", () => {
+        const fileInputs = chemicalContainer.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(inp => {
+          inp.style.display = (statusSelectChemical.value === "attention-required") ? "block" : "none";
+        });
+      });
+      container.appendChild(chemicalContainer);
     }
     
     /* New Temperature Sensor Item */
@@ -843,21 +972,28 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Process Flow Meters Data
+      // Process Flow Meters Data with corrected mapping
       let flowMeters = [];
-      const fmNames = ["Acid Flow Meter", "Chlor Alkali Flow Meter", "Teat Concentrate Flow Meter", "Water Flow Meter"];
-      fmNames.forEach(name => {
-        const key = name.toLowerCase().replace(/\s/g, "-");
-        const physical = fd.get(key + "-physical") || "";
-        const system = fd.get(key + "-system") || "";
-        flowMeters.push([name, physical + " ml", system + " ml"]);
-      });
+      const flowMeterMapping = {
+         "Acid Flow Meter": "acid-flow",
+         "Chlor Alkali Flow Meter": "chlor-flow",
+         "Teat Concentrate Flow Meter": "teat-flow",
+         "Water Flow Meter": "water-flow"
+      };
+      for (let meter in flowMeterMapping) {
+         const prefix = flowMeterMapping[meter];
+         const physical = fd.get(prefix + "-physical") || "";
+         const system = fd.get(prefix + "-system") || "";
+         flowMeters.push([meter, physical + " ml", system + " ml"]);
+      }
       
       // Function to finalize and output PDF
       function finalizePDF() {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
-        // Draw a small logo (fixed width of 100)
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        // Draw a larger, centered logo at the top
         try {
           storage.ref("Agora Logo/6-1YdaEP.jpeg").getDownloadURL().then(url => {
             fetch(url)
@@ -866,9 +1002,10 @@
               .then(logoBase64 => {
                 const img = new Image();
                 img.onload = function() {
-                  const fixedLogoWidth = 100;
+                  const fixedLogoWidth = 150;
                   const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
-                  pdf.addImage(logoBase64, "JPEG", 40, 40, fixedLogoWidth, fixedLogoHeight);
+                  const x = (pageWidth - fixedLogoWidth) / 2;
+                  pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
                   currentY = 40 + fixedLogoHeight + 20;
                   addFarmDetailsAndTables(pdf);
                 };
@@ -950,23 +1087,40 @@
           // Attached Photos Section
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
+            // Check if enough space exists for the "Attached Photos:" header
+            if (currentY + 20 > pageHeight) {
+              pdf.addPage();
+              currentY = 40;
+            }
             pdf.text("Attached Photos:", 40, currentY);
             currentY += 20;
             photoStore.forEach(photoItem => {
+              // If not enough space for item title, add a new page
+              if (currentY + 15 > pageHeight) {
+                pdf.addPage();
+                currentY = 40;
+              }
               pdf.setFont("helvetica", "bold");
               pdf.text(photoItem.itemName, 40, currentY);
               currentY += 15;
+              let maxImgHeight = 0;
               photoItem.images.forEach((img, idx) => {
                 try {
                   const imgProps = pdf.getImageProperties(img);
                   const imgWidth = 100;
                   const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+                  // If adding the image exceeds the page, add a new page
+                  if (currentY + imgHeight > pageHeight) {
+                    pdf.addPage();
+                    currentY = 40;
+                  }
                   pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
+                  if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
                 } catch(e) {
                   console.error("Error adding image:", e);
                 }
               });
-              currentY += 120;
+              currentY += maxImgHeight + 20;
             });
           }
           
