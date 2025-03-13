@@ -1,5 +1,5 @@
 // Update cache version for new release
-const CACHE_NAME = 'agora-form-cache-v20';
+const CACHE_NAME = 'agora-form-cache-v22';
 
 const urlsToCache = [
   '/',
