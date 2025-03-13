@@ -7,7 +7,7 @@
   <title>Agora Reporting Form</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
   <style>
-    /* Overall background set to #d2d7dd */
+    /* Overall background and common styling */
     body {
       background-color: #d2d7dd;
       color: #000;
@@ -19,7 +19,7 @@
       padding: 20px;
       margin: 0;
     }
-    .container {
+    .container, .record-container {
       background-color: #d2d7dd;
       padding: 30px;
       border-radius: 10px;
@@ -27,55 +27,26 @@
       max-width: 800px;
       width: 100%;
     }
-    h1, h2 { color: #333; text-align: center; }
-    h1 { margin-bottom: 40px; }
-    /* Ensure labels remain black */
+    .record-container {
+      background-color: #fff;
+    }
+    h1, h2, h3, h4 { text-align: center; }
+    h1, h2 { color: #333; }
+    h3 { color: #002B5C; margin-top: 20px; }
+    h4 { color: #555; margin-top: 10px; }
     label { color: #000; margin-top: 10px; }
     button {
       background-color: #FFD700;
-      color: #000; /* Button text is black */
+      color: #000;
       border: none;
       padding: 10px 20px;
       cursor: pointer;
-      display: block;
-      margin: 20px auto;
+      display: inline-block;
+      margin: 10px 5px;
       border-radius: 5px;
     }
     button:hover { background-color: #E6C200; }
-    .checklist-item { margin-bottom: 30px; }
-    .form-control, .form-select { margin-top: 5px; }
-    .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
-    /* Use the new logo URL for both form and pdf */
-    .logo { display: block; margin: 0 auto 20px; width: 250px; }
-    .record-container {
-      background-color: #fff;
-      color: #000;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
-      max-width: 1000px;
-      width: 100%;
-      margin: 20px auto;
-    }
-    .record-container h2 { color: #002B5C; }
-    .record-list { max-height: 400px; overflow-y: auto; }
-    .record-list a {
-      text-decoration: none;
-      color: #007bff;
-      display: block;
-      margin-bottom: 10px;
-    }
-    .back-button {
-      margin-top: 20px;
-      background-color: #002B5C;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .search-container { margin-bottom: 20px; }
-    /* Hide image uploads by default */
+    .back-button { background-color: #002B5C; color: #fff; }
     .image-upload { display: none; }
     .image-preview {
       display: none;
@@ -84,16 +55,41 @@
       margin-top: 5px;
       border: 2px solid #ccc;
     }
-    /* Calibration and extra fields hidden by default */
     .calibration-container,
     .temp-extra-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
+    /* Pilot Checks Page Styling */
+    .pilot-checks-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .farm-checks {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+      padding: 15px;
+      width: 45%;
+      min-width: 280px;
+    }
+    .farm-checks ul {
+      list-style: none;
+      padding: 0;
+    }
+    .farm-checks li {
+      padding: 5px 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .farm-checks li:last-child {
+      border-bottom: none;
+    }
+    .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
   </style>
 </head>
 <body>
   <!-- MAIN FORM CONTAINER -->
   <div class="container" id="form-container">
-    <!-- Use new logo URL -->
-    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo">
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
     <h1>Agora Reporting Form</h1>
     <form id="hygiene-checklist-form">
       <!-- Farm Details Section -->
@@ -272,10 +268,14 @@
         </div>
       </div>
       
-      <button type="button" onclick="generatePDF()">Generate PDF</button>
-      <button type="button" onclick="viewRecords()">View All Records</button>
+      <!-- Buttons at the bottom of the form -->
+      <div style="text-align: center;">
+        <button type="button" onclick="generatePDF()">Generate PDF</button>
+        <button type="button" onclick="viewRecords()">View All Records</button>
+        <button type="button" onclick="pilotChecks()">Pilot Checks</button>
+      </div>
     </form>
-    <div class="version">Version 7.1 (Agora)</div>
+    <div class="version">Version 6.1 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -286,6 +286,76 @@
     </div>
     <div id="record-list" class="record-list"></div>
     <button class="back-button" onclick="goBack()">Back to Checklist</button>
+  </div>
+  
+  <!-- PILOT CHECKS PAGE -->
+  <div id="pilot-checks-page" class="record-container" style="display: none;">
+    <h2>Upcoming Agora Shed Checks</h2>
+    <div class="pilot-checks-container">
+      <!-- Brandmar Farm -->
+      <div class="farm-checks">
+        <h3>Brandmar Farm</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>Annual Check – Due: 19th June 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 19th June 2024</li>
+          <li>2 Week Check: 3rd July 2024</li>
+          <li>3 Month Check: 19th Sep 2024</li>
+          <li>6 Month Check: 19th Dec 2024</li>
+        </ul>
+      </div>
+      <!-- J Block -->
+      <div class="farm-checks">
+        <h3>J Block</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>6 Month Check – Due: 3rd June 2025</li>
+          <li>Annual Check – Due: 3rd Dec 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 3rd Dec 2024</li>
+          <li>2 Week Check: 17th Dec 2024</li>
+          <li>3 Month Check: 3rd Mar 2025</li>
+        </ul>
+      </div>
+      <!-- Pukerimu -->
+      <div class="farm-checks">
+        <h3>Pukerimu</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>Annual Check – Due: 23rd Aug 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 23rd Aug 2024</li>
+          <li>2 Week Check: 6th Sep 2024</li>
+          <li>3 Month Check: 22nd Nov 2024</li>
+          <li>6 Month Check: 24th Feb 2025</li>
+        </ul>
+      </div>
+      <!-- Ferry View -->
+      <div class="farm-checks">
+        <h3>Ferry View</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>3 Month Check – Due: 19th May 2025</li>
+          <li>6 Month Check – Due: 19th Aug 2025</li>
+          <li>Annual Check – Due: 19th Feb 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 19th Feb 2025</li>
+          <li>2 Week Check: 11th Mar 2025</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align: center;">
+      <button class="back-button" onclick="backToForm()">Back to Checklist</button>
+    </div>
   </div>
   
   <!-- SCRIPTS -->
@@ -314,7 +384,6 @@
       forms: "dairyNumber",
       dairyCompanies: "++id, name",
       teatSprayRatios: "++id, ratio",
-      // pdfQueue now includes a target field ("customers")
       pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
     });
     
@@ -752,7 +821,6 @@
       });
     }
     
-    // Save farm details JSON only to Agora Farm Details folder
     async function saveFarmDetailsToFirebase(fd) {
       const dairyNumber = fd.get("dairy-number") || "";
       if (!dairyNumber) return;
@@ -805,7 +873,6 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
-      // Process checklist items and image promises
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -837,7 +904,6 @@
         checklistData.push([itemName, status, comments]);
       });
       
-      // Process Temperature Sensor Data
       let tempSensorData = [];
       const tsContainer = document.getElementById("temperature-sensors-container");
       const tsItem = tsContainer.querySelector(".checklist-item");
@@ -849,8 +915,7 @@
         tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
       }
       
-      // Build Farm Details Table – 4 columns (left side: Dairy Company, Dairy Number, Address, Customer Name, Visit Date; right side: Visit Type, Inspection Start Time, Inspection End Time, Inspection Completed By, Call Type)
-      const pageWidth = 595; // Approximate A4 width (points)
+      const pageWidth = 595;
       const leftColLabelWidth = pageWidth * 0.15;
       const leftColValueWidth = pageWidth * 0.20;
       const rightColLabelWidth = pageWidth * 0.20;
@@ -888,7 +953,6 @@
         ]
       ];
       
-      // Process Temperature Measurement Data
       const hotWaterTemp = fd.get("hot-water-temp") || "";
       const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
       const milkTemp = fd.get("milk-temp") || "";
@@ -900,7 +964,6 @@
         ["Time Taken:", milkTime]
       ];
       
-      // Process Flow Meters Data with calibration extra row (if any calibration info exists)
       let flowMeters = [];
       const flowMeterMapping = {
          "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
@@ -928,7 +991,6 @@
          }
       }
       
-      // Wait for all image conversion promises
       Promise.all(imagePromises).then(() => {
         finalizePDF();
       }).catch(() => {
@@ -940,7 +1002,6 @@
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
-        // Use new logo from the specified location
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -967,7 +1028,6 @@
         });
         
         function addFarmDetailsAndTables(pdf) {
-          // Farm Details Table – same style as checklist table (grid, blue header) with fontSize 10
           pdf.autoTable({
             startY: currentY,
             head: [["Farm Details", "", "", ""]],
@@ -985,7 +1045,6 @@
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
-          // Temperature Measurement Section
           pdf.autoTable({
             startY: currentY,
             head: [["Temperature Measurement", ""]],
@@ -996,7 +1055,6 @@
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
-          // Checklist Items Table
           pdf.setFont("helvetica", "bold");
           pdf.text("Checklist Items:", 40, currentY);
           currentY += 10;
@@ -1010,7 +1068,6 @@
           });
           currentY = pdf.lastAutoTable.finalY + 20;
           
-          // Temperature Sensors Table
           if (tempSensorData.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Temperature Sensors:", 40, currentY);
@@ -1026,7 +1083,6 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Flow Meters Table
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
@@ -1042,7 +1098,6 @@
             currentY = pdf.lastAutoTable.finalY + 20;
           }
           
-          // Attached Photos Section – photos drawn 2.5× larger (width = 250px)
           if (photoStore.length > 0) {
             pdf.setFont("helvetica", "bold");
             if (currentY + 20 > pageHeight) {
@@ -1079,7 +1134,6 @@
             });
           }
           
-          // Now, wait for the PDF upload to complete before saving and reloading.
           (async function(){
             const pdfBlob = pdf.output("blob");
             const visitDate = fd.get("visit-date");
@@ -1087,7 +1141,6 @@
               alert("Visit Date is required.");
               return;
             }
-            // Convert from "YYYY-MM-DD" to "DD-MM-YY"
             const dateParts = visitDate.split("-");
             const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
             const fileName = `${fd.get("dairy-number")}-form-${formattedVisitDate}.pdf`;
@@ -1110,6 +1163,7 @@
     
     function viewRecords() {
       document.getElementById("form-container").style.display = "none";
+      document.getElementById("pilot-checks-page").style.display = "none";
       document.getElementById("record-container").style.display = "block";
       loadAllRecords();
     }
@@ -1177,8 +1231,19 @@
     }
     
     function goBack() {
-      document.getElementById("form-container").style.display = "block";
       document.getElementById("record-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    function pilotChecks() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("pilot-checks-page").style.display = "block";
+    }
+    
+    function backToForm() {
+      document.getElementById("pilot-checks-page").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
     }
     
     function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
