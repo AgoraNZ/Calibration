@@ -1161,39 +1161,22 @@
       }
     }
     
-    function viewRecords() {
+    /* Make sure BOTH loadAllRecords and loadRecordFiles are async */
+    async function viewRecords() {
       document.getElementById("form-container").style.display = "none";
       document.getElementById("pilot-checks-page").style.display = "none";
       document.getElementById("record-container").style.display = "block";
-      loadAllRecords();
+      await loadAllRecords();
     }
     
-    // Updated loadAllRecords function:
     async function loadAllRecords() {
       const recordList = document.getElementById("record-list");
       recordList.innerHTML = "";
       const storageRef = storage.ref("Agora Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
-        let dairyNumbers = [];
-        if (folderSnapshot.prefixes && folderSnapshot.prefixes.length > 0) {
-          // If sub-folders exist, use their names
-          folderSnapshot.prefixes.forEach(prefix => {
-            dairyNumbers.push(prefix.name);
-          });
-        } else {
-          // Otherwise, extract dairy numbers from file names (assuming format: dairyNumber-form-...)
-          const dairySet = new Set();
-          folderSnapshot.items.forEach(item => {
-            const fileName = item.name;
-            const parts = fileName.split("-form-");
-            if (parts.length > 1) {
-              dairySet.add(parts[0]);
-            }
-          });
-          dairyNumbers = Array.from(dairySet);
-        }
-        dairyNumbers.forEach(dairyNumber => {
+        folderSnapshot.prefixes.forEach(folderRef => {
+          const dairyNumber = folderRef.name; 
           const link = document.createElement("a");
           link.textContent = dairyNumber;
           link.href = "#";
