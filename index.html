@@ -275,7 +275,7 @@
         <button type="button" onclick="pilotChecks()">Pilot Checks</button>
       </div>
     </form>
-    <div class="version">Version 6.1 (Agora)</div>
+    <div class="version">Version 7.5 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -1174,14 +1174,37 @@
       const storageRef = storage.ref("Agora Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
-        folderSnapshot.prefixes.forEach(folderRef => {
-          const dairyNumber = folderRef.name;
-          const link = document.createElement("a");
-          link.textContent = dairyNumber;
-          link.href = "#";
-          link.addEventListener("click", () => loadRecordFiles(dairyNumber));
-          recordList.appendChild(link);
-        });
+        // List any subfolders (dairy-number folders)
+        if (folderSnapshot.prefixes.length > 0) {
+          folderSnapshot.prefixes.forEach(folderRef => {
+            const dairyNumber = folderRef.name;
+            const link = document.createElement("a");
+            link.textContent = dairyNumber;
+            link.href = "#";
+            link.style.display = "block"; // ensure each link appears on its own line
+            link.addEventListener("click", () => loadRecordFiles(dairyNumber));
+            recordList.appendChild(link);
+          });
+        }
+        // In case files are stored directly in "Agora Customers"
+        if (folderSnapshot.items.length > 0) {
+          folderSnapshot.items.forEach(fileRef => {
+            const fileName = fileRef.name;
+            const link = document.createElement("a");
+            link.textContent = fileName;
+            link.href = "#";
+            link.style.display = "block";
+            link.addEventListener("click", async () => {
+              try {
+                const url = await fileRef.getDownloadURL();
+                window.open(url, "_blank");
+              } catch (err) {
+                console.error("Error fetching file:", err);
+              }
+            });
+            recordList.appendChild(link);
+          });
+        }
       } catch (error) {
         console.error("Error fetching records:", error);
       }
@@ -1200,6 +1223,7 @@
           const fileLink = document.createElement("a");
           fileLink.textContent = displayName;
           fileLink.href = "#";
+          fileLink.style.display = "block";
           fileLink.addEventListener("click", async () => {
             try {
               const url = await fileRef.getDownloadURL();
