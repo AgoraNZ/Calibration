@@ -1174,22 +1174,8 @@
       const storageRef = storage.ref("Agora Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
-        let dairyNumbersSet = new Set();
-        // Use subfolder prefixes if available
-        if (folderSnapshot.prefixes.length > 0) {
-          folderSnapshot.prefixes.forEach(folderRef => {
-            dairyNumbersSet.add(folderRef.name);
-          });
-        }
-        // Also check items and extract dairy number from their path
-        folderSnapshot.items.forEach(itemRef => {
-          let parts = itemRef.fullPath.split("/");
-          if (parts.length >= 2) {
-            dairyNumbersSet.add(parts[1]);
-          }
-        });
-        // Display unique dairy numbers
-        dairyNumbersSet.forEach(dairyNumber => {
+        folderSnapshot.prefixes.forEach(folderRef => {
+          const dairyNumber = folderRef.name;
           const link = document.createElement("a");
           link.textContent = dairyNumber;
           link.href = "#";
