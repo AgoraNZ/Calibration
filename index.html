@@ -275,7 +275,7 @@
         <button type="button" onclick="pilotChecks()">Pilot Checks</button>
       </div>
     </form>
-    <div class="version">Version 6.1 (Agora)</div>
+    <div class="version">Version 7.3 (Agora)</div>
   </div>
   
   <!-- RECORDS VIEW -->
@@ -1174,8 +1174,14 @@
       const storageRef = storage.ref("Agora Customers");
       try {
         const folderSnapshot = await storageRef.listAll();
-        folderSnapshot.prefixes.forEach(folderRef => {
-          const dairyNumber = folderRef.name;
+        // Use both prefixes and file items to gather dairy numbers
+        const dairyNumbers = new Set();
+        folderSnapshot.prefixes.forEach(folderRef => dairyNumbers.add(folderRef.name));
+        folderSnapshot.items.forEach(itemRef => {
+          const parts = itemRef.fullPath.split("/");
+          if(parts.length > 1) dairyNumbers.add(parts[1]);
+        });
+        dairyNumbers.forEach(dairyNumber => {
           const link = document.createElement("a");
           link.textContent = dairyNumber;
           link.href = "#";
