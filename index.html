@@ -1,683 +1,1310 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Agora Vat Pre-Check</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
-
-<style>
-:root{ --brand:#001F3F; --accent:#FF851B; --muted:#6b7280; --bg:#f7f8fb; }
-html,body{background:var(--bg);color:#0f172a;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
-.app{max-width:1100px;margin:26px auto;padding:0 16px}
-.brand-header{display:flex;gap:14px;align-items:center}
-.brand-logo{width:160px;height:auto;display:none}
-.brand-title h1{margin:0;font-weight:800;color:var(--brand)}
-.brand-sub{color:var(--muted)}
-.top-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
-.tab-btn{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:10px 14px;font-weight:700}
-.tab-btn.active{outline:3px solid #ff851b2b;border-color:var(--accent)}
-.counts{display:flex;gap:12px;align-items:center}
-.progress{height:10px}
-.panel{border:1px solid #e5e7eb;border-radius:16px;background:#fff;padding:14px;margin-bottom:12px}
-.section-title{font-weight:800;margin-bottom:8px}
-.form-card{border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:14px;margin-bottom:12px}
-.form-card h6{font-weight:800;margin-bottom:10px}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media (max-width:900px){ .grid-2,.grid-3{grid-template-columns:1fr}}
-.hint{color:#6b7280;font-size:.9rem}
-.photo-thumb{width:110px;height:86px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;margin-top:6px}
-.card-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media (max-width:900px){.card-list{grid-template-columns:1fr}}
-.farm-card{border:1px solid #e5e7eb;border-radius:16px;background:#fff;padding:14px}
-.farm-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.06)}
-.farm-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.farm-title{font-size:1.15rem;font-weight:800}
-.badge-soft{border:1px solid #e5e7eb;border-radius:999px;padding:2px 8px;font-size:.82rem}
-.farm-lines{color:#111827}
-.farm-actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-.btn-brand{background:var(--accent);border:none;color:#fff;font-weight:700}
-.btn-brand:hover{background:#ff6d00}
-.btn-outline-brand{border:1px solid var(--accent);color:var(--accent);background:#fff;font-weight:700}
-.btn-outline-brand:hover{background:var(--accent);color:#fff}
-.sticky-actions{position:sticky;bottom:8px;display:flex;gap:8px;flex-wrap:wrap}
-.footer{color:#6b7280;text-align:center;margin:16px 0}
-
-/* Brochure / Details / Print */
-.print-sheet{max-width:900px;margin:0 auto;color:#0f172a}
-.print-head{display:flex;align-items:center;gap:16px;border-bottom:2px solid #e5e7eb;padding-bottom:10px;margin-bottom:10px}
-.print-head img{height:44px}
-.print-title{font-weight:800;font-size:1.2rem}
-.print-sub{color:#6b7280}
-.print-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.print-card{border:1px solid #e5e7eb;border-radius:10px;padding:10px}
-.print-label{font-weight:700;margin-bottom:6px}
-.print-photos img{width:100%;max-height:180px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:8px}
-.hidden{display:none!important}
-</style>
+  <!-- META & STYLES -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agora Reporting Form</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <style>
+    /* Overall background and common styling */
+    body {
+      background-color: #d2d7dd;
+      color: #000;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .container, .record-container {
+      background-color: #d2d7dd;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      max-width: 800px;
+      width: 100%;
+    }
+    .record-container {
+      background-color: #fff;
+    }
+    h1, h2, h3, h4 { text-align: center; }
+    h1, h2 { color: #333; }
+    h3 { color: #002B5C; margin-top: 20px; }
+    h4 { color: #555; margin-top: 10px; }
+    label { color: #000; margin-top: 10px; }
+    button {
+      background-color: #FFD700;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      display: inline-block;
+      margin: 10px 5px;
+      border-radius: 5px;
+    }
+    button:hover { background-color: #E6C200; }
+    .back-button { background-color: #002B5C; color: #fff; }
+    .image-upload { display: none; }
+    .image-preview {
+      display: none;
+      max-width: 200px;
+      max-height: 200px;
+      margin-top: 5px;
+      border: 2px solid #ccc;
+    }
+    .calibration-container,
+    .temp-extra-container { display: none; margin-top: 10px; padding: 10px; border: 1px dashed #888; }
+    /* Pilot Checks Page Styling */
+    .pilot-checks-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .farm-checks {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+      padding: 15px;
+      width: 45%;
+      min-width: 280px;
+    }
+    .farm-checks ul {
+      list-style: none;
+      padding: 0;
+    }
+    .farm-checks li {
+      padding: 5px 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .farm-checks li:last-child {
+      border-bottom: none;
+    }
+    .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
+  </style>
 </head>
 <body>
-<div class="app">
-  <div class="brand-header">
-    <img id="logo" class="brand-logo" alt="Agora">
-    <div class="brand-title">
-      <h1>Agora Vat Pre-Check</h1>
-      <div class="brand-sub">Fast field capture • Smart summary • Customer-ready output</div>
-    </div>
-  </div>
-
-  <div class="top-tabs">
-    <button id="tab-form" class="tab-btn active">Form</button>
-    <button id="tab-summary" class="tab-btn">Summary</button>
-    <button id="tab-admin" class="tab-btn">Admin</button>
-    <div class="ms-auto counts">
-      <span>Cloud: <b id="cloud-count">–</b></span>
-      <div class="progress" style="width:160px">
-        <div id="sync-bar" class="progress-bar" role="progressbar" style="width:0%"></div>
+  <!-- MAIN FORM CONTAINER -->
+  <div class="container" id="form-container">
+    <img src="https://firebasestorage.googleapis.com/v0/b/dairy-farm-record-system.appspot.com/o/Agora%20Logo%2F2F6-1YdaEP.jpeg?alt=media" alt="Logo" class="logo" style="display:block; margin: 0 auto 20px; width:250px;">
+    <h1>Agora Reporting Form</h1>
+    <form id="hygiene-checklist-form">
+      <!-- Farm Details Section -->
+      <div class="section mb-4">
+        <h2>Farm Details</h2>
+        <label for="dairy-number">Dairy Number:</label>
+        <input type="text" class="form-control" id="dairy-number" name="dairy-number" onblur="handleDairyNumberBlur();" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <label for="dairy-company">Dairy Company:</label>
+        <input type="text" class="form-control" id="dairy-company" name="dairy-company" list="dairy-company-list" placeholder="Type or select..." autocapitalize="words" autocorrect="off" spellcheck="false">
+        <datalist id="dairy-company-list"></datalist>
+        <label for="address">Address:</label>
+        <input type="text" class="form-control" id="address" name="address" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <label for="customer-name">Customer Name:</label>
+        <input type="text" class="form-control" id="customer-name" name="customer-name" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <label for="region">Region:</label>
+        <select id="region" name="region" class="form-select">
+          <option value="northland">Northland</option>
+          <option value="auckland">Auckland</option>
+          <option value="waikato">Waikato</option>
+          <option value="bay-of-plenty">Bay of Plenty</option>
+          <option value="gisborne">Gisborne</option>
+          <option value="hawkes-bay">Hawke's Bay</option>
+          <option value="taranaki">Taranaki</option>
+          <option value="manawatu-wanganui">Manawatu-Wanganui</option>
+          <option value="wellington">Wellington</option>
+          <option value="nelson">Nelson</option>
+          <option value="marlborough">Marlborough</option>
+          <option value="west-coast">West Coast</option>
+          <option value="canterbury">Canterbury</option>
+          <option value="otago">Otago</option>
+          <option value="southland">Southland</option>
+        </select>
+        <label for="farm-name">Farm Name:</label>
+        <input type="text" class="form-control" id="farm-name" name="farm-name" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <label for="island">Island:</label>
+        <select id="island" name="island" class="form-select">
+          <option value="north-island">North Island</option>
+          <option value="south-island">South Island</option>
+        </select>
+        <label for="visit-date">Visit Date:</label>
+        <input type="date" class="form-control" id="visit-date" name="visit-date">
+        <label for="visit-type">Visit Type:</label>
+        <input type="text" class="form-control" id="visit-type" name="visit-type" value="Milking Plant & Milk Vat Check" readonly autocapitalize="words" autocorrect="off" spellcheck="false">
+        <label for="inspection-start-time">Inspection Start Time:</label>
+        <input type="time" class="form-control" id="inspection-start-time" name="inspection-start-time">
+        <label for="inspection-end-time">Inspection End Time:</label>
+        <input type="time" class="form-control" id="inspection-end-time" name="inspection-end-time">
+        <label for="inspection-completed-by">Inspection Completed By:</label>
+        <input type="text" class="form-control" id="inspection-completed-by" name="inspection-completed-by" autocapitalize="words" autocorrect="off" spellcheck="false">
+        <label for="call-type">Call Type:</label>
+        <select id="call-type" name="call-type" class="form-select">
+          <option value="alert">Alert</option>
+          <option value="grade-call">Grade Call</option>
+          <option value="regular-scheduled-visit" selected>Regular Scheduled Visit</option>
+        </select>
       </div>
-    </div>
-  </div>
-
-  <!-- ===== FORM ===== -->
-  <div id="view-form">
-    <div class="form-card">
-      <div class="grid-3">
-        <div>
-          <label class="form-label">Dairy Number</label>
-          <input id="dairyNumber" class="form-control" placeholder="e.g. 7016">
-          <div class="hint">Blur to auto-fill directly from cloud (offline reads cached file if available).</div>
+      
+      <!-- Health & Safety Section -->
+      <div class="section mb-4">
+        <h2>Health & Safety</h2>
+        <div id="health-safety-top"></div>
+      </div>
+      
+      <!-- Plant Checklist Section -->
+      <div class="section mb-4">
+        <h2>Plant Checklist</h2>
+        <div id="checklist-items"></div>
+      </div>
+      
+      <!-- Silo Checklist Section -->
+      <div class="section mb-4">
+        <h2>Silo Checklist</h2>
+        <div id="silo-checklist"></div>
+      </div>
+      
+      <!-- Temperature Measurement Section -->
+      <div class="section mb-4" id="temp-measurement-section">
+        <h2>Temperature Measurement</h2>
+        <div class="mb-3">
+          <label for="hot-water-temp">Hot Water Temp (°C):</label>
+          <input type="text" class="form-control" id="hot-water-temp" name="hot-water-temp">
         </div>
-        <div>
-          <label class="form-label">Gateway Location</label>
-          <input id="gateway-location" class="form-control">
+        <div class="mb-3">
+          <label for="hot-water-time">Time Taken:</label>
+          <input type="time" class="form-control" id="hot-water-time" name="hot-water-time" placeholder="--:-- --">
         </div>
-        <div>
-          <label class="form-label">Gateway Photo</label>
-          <input id="gateway-photo" type="file" accept="image/*" class="form-control">
-          <img id="gateway-preview" class="photo-thumb d-none">
+        <div class="mb-3">
+          <label for="milk-temp">Milk Temp (°C):</label>
+          <input type="text" class="form-control" id="milk-temp" name="milk-temp">
+        </div>
+        <div class="mb-3">
+          <label for="milk-time">Time Taken:</label>
+          <input type="time" class="form-control" id="milk-time" name="milk-time" placeholder="--:-- --">
         </div>
       </div>
+      
+      <!-- New Temperature Sensors Section -->
+      <div class="section mb-4" id="temperature-sensors-container">
+        <h2>Temperature Sensors</h2>
+      </div>
+      
+      <!-- Flow Meters Section -->
+      <div class="section mb-4" id="flow-meters-section">
+        <h2>Flow Meters</h2>
+        <!-- Acid Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Acid Flow Meter</h3>
+          <label for="acid-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="acid-flow-physical" name="acid-flow-physical">
+          <label for="acid-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="acid-flow-system" name="acid-flow-system">
+          <div class="calibration-container" id="acid-calibration">
+            <label for="acid-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="acid-pulse-old" name="acid-pulse-old">
+            <label for="acid-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="acid-pulse-new" name="acid-pulse-new">
+            <label for="acid-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="acid-new-test-physical" name="acid-new-test-physical">
+            <label for="acid-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="acid-new-system-result" name="acid-new-system-result">
+          </div>
+        </div>
+        <!-- Chlor Alkali Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Chlor Alkali Flow Meter</h3>
+          <label for="chlor-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="chlor-flow-physical" name="chlor-flow-physical">
+          <label for="chlor-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="chlor-flow-system" name="chlor-flow-system">
+          <div class="calibration-container" id="chlor-calibration">
+            <label for="chlor-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="chlor-pulse-old" name="chlor-pulse-old">
+            <label for="chlor-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="chlor-pulse-new" name="chlor-pulse-new">
+            <label for="chlor-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="chlor-new-test-physical" name="chlor-new-test-physical">
+            <label for="chlor-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="chlor-new-system-result" name="chlor-new-system-result">
+          </div>
+        </div>
+        <!-- Teat Concentrate Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Teat Concentrate Flow Meter</h3>
+          <label for="teat-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="teat-flow-physical" name="teat-flow-physical">
+          <label for="teat-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="teat-flow-system" name="teat-flow-system">
+          <div class="calibration-container" id="teat-calibration">
+            <label for="teat-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="teat-pulse-old" name="teat-pulse-old">
+            <label for="teat-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="teat-pulse-new" name="teat-pulse-new">
+            <label for="teat-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="teat-new-test-physical" name="teat-new-test-physical">
+            <label for="teat-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="teat-new-system-result" name="teat-new-system-result">
+          </div>
+        </div>
+        <!-- Water Flow Meter -->
+        <div class="flow-meter-item checklist-item">
+          <h3>Water Flow Meter</h3>
+          <label for="water-flow-physical">Physical Test (ml):</label>
+          <input type="number" class="form-control" id="water-flow-physical" name="water-flow-physical">
+          <label for="water-flow-system">System Read (ml):</label>
+          <input type="number" class="form-control" id="water-flow-system" name="water-flow-system">
+          <div class="calibration-container" id="water-calibration">
+            <label for="water-pulse-old">Pulse per ml Old:</label>
+            <input type="number" step="0.01" class="form-control" id="water-pulse-old" name="water-pulse-old">
+            <label for="water-pulse-new">Pulse per ml New:</label>
+            <input type="number" step="0.01" class="form-control" id="water-pulse-new" name="water-pulse-new">
+            <label for="water-new-test-physical">New Test Physical (ml):</label>
+            <input type="number" class="form-control" id="water-new-test-physical" name="water-new-test-physical">
+            <label for="water-new-system-result">New System Result (ml):</label>
+            <input type="number" class="form-control" id="water-new-system-result" name="water-new-system-result">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Buttons at the bottom of the form -->
+      <div style="text-align: center;">
+        <button type="button" onclick="generatePDF()">Generate PDF</button>
+        <button type="button" onclick="viewRecords()">View All Records</button>
+        <button type="button" onclick="pilotChecks()">Pilot Checks</button>
+      </div>
+    </form>
+    <div class="version">Version 6.1 (Agora)</div>
+  </div>
+  
+  <!-- RECORDS VIEW -->
+  <div id="record-container" class="record-container" style="display: none;">
+    <h2>All Agora Records</h2>
+    <div class="search-container">
+      <input type="text" id="search-dairy-number" class="form-control" placeholder="Search by Dairy Number" oninput="filterRecords()">
     </div>
-
-    <div class="form-card">
-      <h6>Vat 1</h6>
-      <div class="grid-3">
-        <div><label class="form-label">Capacity (L)</label><input id="vat1-capacity" class="form-control"></div>
-        <div><label class="form-label">Cap</label><select id="vat1-cap" class="form-select"><option value="available">Available ✓</option><option value="unavailable">Unavailable ✗</option></select></div>
-        <div><label class="form-label">Cap Photo</label><input id="vat1-cap-photo" type="file" accept="image/*" class="form-control"><img id="vat1-cap-preview" class="photo-thumb d-none"></div>
-        <div><label class="form-label">Serial</label><input id="vat1-serial" class="form-control"></div>
-        <div><label class="form-label">Condition</label><select id="vat1-condition" class="form-select"><option value="ok">OK</option><option value="attention">Attention required</option></select><input id="vat1-condition-comments" class="form-control mt-2" placeholder="comments"></div>
-        <div><label class="form-label">Comments</label><input id="vat1-comments" class="form-control"></div>
-        <div><label class="form-label">Agitator Location (Vat 1)</label><input id="agitator1-location" class="form-control"></div>
-        <div><label class="form-label">Agitator Photo (Vat 1)</label><input id="agitator1-photo" type="file" accept="image/*" class="form-control"><img id="agitator1-preview" class="photo-thumb d-none"></div>
+    <div id="record-list" class="record-list"></div>
+    <button class="back-button" onclick="goBack()">Back to Checklist</button>
+  </div>
+  
+  <!-- PILOT CHECKS PAGE -->
+  <div id="pilot-checks-page" class="record-container" style="display: none;">
+    <h2>Upcoming Agora Shed Checks</h2>
+    <div class="pilot-checks-container">
+      <!-- Brandmar Farm -->
+      <div class="farm-checks">
+        <h3>Brandmar Farm</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>Annual Check – Due: 19th June 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 19th June 2024</li>
+          <li>2 Week Check: 3rd July 2024</li>
+          <li>3 Month Check: 19th Sep 2024</li>
+          <li>6 Month Check: 19th Dec 2024</li>
+        </ul>
+      </div>
+      <!-- J Block -->
+      <div class="farm-checks">
+        <h3>J Block</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>6 Month Check – Due: 3rd June 2025</li>
+          <li>Annual Check – Due: 3rd Dec 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 3rd Dec 2024</li>
+          <li>2 Week Check: 17th Dec 2024</li>
+          <li>3 Month Check: 3rd Mar 2025</li>
+        </ul>
+      </div>
+      <!-- Pukerimu -->
+      <div class="farm-checks">
+        <h3>Pukerimu</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>Annual Check – Due: 23rd Aug 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 23rd Aug 2024</li>
+          <li>2 Week Check: 6th Sep 2024</li>
+          <li>3 Month Check: 22nd Nov 2024</li>
+          <li>6 Month Check: 24th Feb 2025</li>
+        </ul>
+      </div>
+      <!-- Ferry View -->
+      <div class="farm-checks">
+        <h3>Ferry View</h3>
+        <h4>Upcoming Checks</h4>
+        <ul>
+          <li>6 Month Check – Due: 19th Aug 2025</li>
+          <li>Annual Check – Due: 19th Feb 2025</li>
+        </ul>
+        <h4>Completed Checks</h4>
+        <ul>
+          <li>Install Date: 19th Feb 2025</li>
+          <li>2 Week Check: 11th Mar 2025</li>
+          <li>3 Month Check – Due: 19th May 2025</li>
+        </ul>
       </div>
     </div>
-
-    <div class="form-card">
-      <h6>Vat 2 – Capacity</h6>
-      <div class="grid-3"><div><label class="form-label">Capacity (L)</label><input id="vat2-capacity" class="form-control" placeholder="leave blank if N/A"><div class="hint">Entering a value reveals Vat 2 fields.</div></div></div>
-    </div>
-
-    <div id="vat2-extra" class="form-card d-none">
-      <h6>Vat 2</h6>
-      <div class="grid-3">
-        <div><label class="form-label">Cap</label><select id="vat2-cap" class="form-select"><option value="na" selected>N/A</option><option value="available">Available ✓</option><option value="unavailable">Unavailable ✗</option></select></div>
-        <div><label class="form-label">Cap Photo</label><input id="vat2-cap-photo" type="file" accept="image/*" class="form-control"><img id="vat2-cap-preview" class="photo-thumb d-none"></div>
-        <div><label class="form-label">Serial</label><input id="vat2-serial" class="form-control"></div>
-        <div><label class="form-label">Condition</label><select id="vat2-condition" class="form-select"><option value="ok">OK</option><option value="attention">Attention required</option></select><input id="vat2-condition-comments" class="form-control mt-2" placeholder="comments"></div>
-        <div><label class="form-label">Comments</label><input id="vat2-comments" class="form-control"></div>
-        <div><label class="form-label">Agitator Location (Vat 2)</label><input id="agitator2-location" class="form-control"></div>
-        <div><label class="form-label">Agitator Photo (Vat 2)</label><input id="agitator2-photo" type="file" accept="image/*" class="form-control"><img id="agitator2-preview" class="photo-thumb d-none"></div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <h6>Mobile Signal</h6>
-      <div class="grid-3">
-        <div><label class="form-label">Spark (bars)</label><input id="spark-bars" class="form-control"></div>
-        <div><label class="form-label">Spark Note</label><input id="spark-note" class="form-control"></div>
-        <div><label class="form-label">One NZ (bars)</label><input id="one-bars" class="form-control"></div>
-        <div><label class="form-label">One NZ Note</label><input id="one-note" class="form-control"></div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <h6>Other Telemetry</h6>
-      <div class="grid-3">
-        <div><label class="form-label">Brand</label><input id="other-brand" class="form-control"></div>
-        <div><label class="form-label">Type</label><select id="other-type" class="form-select"><option value="">Select…</option><option value="vat">Vat</option><option value="water">Water</option><option value="fuel">Fuel</option><option value="other">Other</option></select></div>
-        <div><label class="form-label">Notes</label><input id="other-notes" class="form-control"></div>
-      </div>
-    </div>
-
-    <div class="form-card">
-      <h6>Rubberware</h6>
-      <div class="grid-3">
-        <div><label class="form-label">Vat Door Seal Delivered?</label><select id="door-delivered" class="form-select"><option value="no" selected>No</option><option value="yes">Yes</option></select></div>
-        <div id="door-size-wrap" class="d-none"><label class="form-label">Door Seal Size</label><select id="door-size" class="form-select"><option value="">Unspecified</option><option value="small">Small</option><option value="large">Large</option></select><div class="hint">If two vats present, delivered count is 2.</div></div>
-        <div><label class="form-label">Door Seal Photo</label><input id="door-photo" type="file" accept="image/*" class="form-control"><img id="door-preview" class="photo-thumb d-none"></div>
-        <div><label class="form-label">RJT Step Seal Delivered?</label><select id="rjt-delivered" class="form-select"><option value="no" selected>No</option><option value="yes">Yes</option></select></div>
-        <div id="rjt-size-wrap" class="d-none"><label class="form-label">RJT Size</label><select id="rjt-size" class="form-select"><option value="">Unspecified</option><option value="small">Small</option><option value="large">Large</option></select></div>
-        <div><label class="form-label">RJT Photo</label><input id="rjt-photo" type="file" accept="image/*" class="form-control"><img id="rjt-preview" class="photo-thumb d-none"></div>
-      </div>
-    </div>
-
-    <div class="sticky-actions">
-      <button id="btn-save" class="btn btn-brand">Save / Update</button>
-      <button id="btn-print" class="btn btn-outline-brand">Print Brochure</button>
-      <button id="btn-summary-jump" class="btn btn-outline-brand">Go to Summary</button>
+    <div style="text-align: center;">
+      <button class="back-button" onclick="backToForm()">Back to Checklist</button>
     </div>
   </div>
-
-  <!-- ===== SUMMARY ===== -->
-  <div id="view-summary" class="hidden">
-    <div class="panel">
-      <div class="section-title">Overview</div>
-      <div class="input-group mb-2">
-        <span class="input-group-text">Search</span>
-        <input id="searchBox" class="form-control" placeholder="Search dairy # (full text after Load All)">
-        <button class="btn btn-outline-secondary" id="btnClearSearch">Clear</button>
-        <button class="btn btn-outline-brand" id="btnLoadAll">Load All</button>
-      </div>
-      <div class="d-flex flex-wrap gap-2">
-        <div class="badge-soft p-2">DTS Vent Caps: <b id="kpi-dts">0</b></div>
-        <div class="badge-soft p-2">Farms needing power point: <b id="kpi-power">0</b></div>
-        <div class="badge-soft p-2">Rubberware deliveries: <b id="kpi-rubber">0</b></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="section-title">Vat Size Breakdown</div>
-      <div id="size-table" class="mb-2"></div>
-      <button id="btn-export-sizes" class="btn btn-outline-brand">Export Sizes CSV</button>
-    </div>
-
-    <div class="panel">
-      <div class="section-title">Results</div>
-      <div id="result-cards" class="card-list"></div>
-      <div id="list-status" class="text-muted small mt-2"></div>
-    </div>
-  </div>
-
-  <!-- ===== ADMIN ===== -->
-  <div id="view-admin" class="hidden">
-    <div class="panel">
-      <div class="section-title">Data Tools</div>
-      <div class="d-flex flex-wrap gap-2">
-        <button id="btn-sync" class="btn btn-brand">Force Full Sync</button>
-        <button id="btn-owner-report" class="btn btn-outline-brand">Download Owner Report (HTML)</button>
-      </div>
-      <div class="small text-muted mt-2">
-        Offline: the shell, logo, and fetched JSON files are cached by the Service Worker.  
-        Summary loads JIT from cloud when online; brochures open offline once fetched.
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">Agora • Vat Pre-Check • v3.6</div>
-</div>
-
-<div id="print-modal" class="hidden">
-  <div class="print-sheet" id="print-sheet"></div>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
-
-<script>
-/* ---------- Firebase ---------- */
-const firebaseConfig = {
-  apiKey:"AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
-  authDomain:"dairy-farm-record-system.firebaseapp.com",
-  projectId:"dairy-farm-record-system",
-  storageBucket:"dairy-farm-record-system.appspot.com",
-  messagingSenderId:"422124188212",
-  appId:"1:422124188212:web:1bd31bee8d6e91e301d061"
-};
-firebase.initializeApp(firebaseConfig);
-const storage = firebase.storage();
-const FOLDER = 'Pre Check';
-
-/* ---------- State ---------- */
-const Forms = new Map();
-let CloudKeys = [];
-let observer;
-
-/* ---------- Helpers ---------- */
-const $ = id=>document.getElementById(id);
-const show = el=>el.classList.remove('hidden');
-const hide = el=>el.classList.add('hidden');
-function setProgress(done,total){ $('sync-bar').style.width = (total?Math.round(done/total*100):0)+'%'; }
-const norm = s => (s||'').toString().toLowerCase();
-
-/* Logo */
-(async()=>{ try{ const url=await storage.ref('Agora Logo/2F6-1YdaEP.jpeg').getDownloadURL(); $('logo').src=url; $('logo').style.display='block'; window._logoURL=url; }catch(_){}})();
-
-/* Tabs */
-const views = { 'tab-form':'view-form', 'tab-summary':'view-summary', 'tab-admin':'view-admin' };
-Object.keys(views).forEach(t=>{
-  $(t).onclick=()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    $(t).classList.add('active');
-    Object.values(views).forEach(v=>hide($(v)));
-    show($(views[t]));
-    if(views[t]==='view-summary') initSummary();
-  };
-});
-$('btn-summary-jump').onclick = ()=>$('tab-summary').click();
-
-/* UI toggles */
-function toggleVat2Extra(){ $('vat2-extra').classList.toggle('d-none', !($('vat2-capacity').value||'').trim()); }
-$('vat2-capacity').addEventListener('input', toggleVat2Extra);
-$('door-delivered').addEventListener('change', e=>$('door-size-wrap').classList.toggle('d-none', e.target.value!=='yes'));
-$('rjt-delivered').addEventListener('change', e=>$('rjt-size-wrap').classList.toggle('d-none', e.target.value!=='yes'));
-
-/* Photo previews */
-function setImgPreview(inputEl, imgEl){ const f=inputEl.files&&inputEl.files[0]; if(!f){ imgEl.classList.add('d-none'); return; } imgEl.src = URL.createObjectURL(f); imgEl.classList.remove('d-none'); }
-['gateway','vat1-cap','agitator1','vat2-cap','agitator2','door','rjt'].forEach(k=>{
-  const inp=$(k+'-photo'), img=$(k+'-preview'); if(inp) inp.addEventListener('change', ()=>setImgPreview(inp,img));
-});
-
-/* ---------- Normalizer ---------- */
-function first(obj, keys){ for(const k of keys){ if(obj && obj[k]!=null && obj[k]!=='' ) return obj[k]; } return ''; }
-function normalizePhotos(o){
-  // cover all known legacy variants
-  return {
-    gateway: first(o,['gateway-photo-base64','gatewayBase64','gatewayPhoto','gatewayPhotoBase64','gateway-preview-base64']),
-    vat1Cap: first(o,['vat1-cap-photo-base64','vat1CapPhoto','vat1CapPhotoBase64','vat1-cap-preview-base64']),
-    agitator1: first(o,['agitator1-photo-base64','agitator-photo-base64','agitatorPhoto','agitator1PhotoBase64','agitator-preview-base64']),
-    vat2Cap: first(o,['vat2-cap-photo-base64','vat2CapPhoto','vat2CapPhotoBase64','vat2-cap-preview-base64']),
-    agitator2: first(o,['agitator2-photo-base64','agitator2PhotoBase64','agitator2-preview-base64']),
-    door: first(o,['door-photo-base64','vat-door-seal-photo-base64','doorPhotoBase64','door-preview-base64']),
-    rjt: first(o,['rjt-photo-base64','rjt-seal-photo-base64','rjtPhotoBase64','rjt-preview-base64'])
-  };
-}
-function normalizeRecord(raw){
-  const o = raw||{};
-  const r = {
-    dairyNumber: first(o,['dairyNumber','dairy','Dairy Number']) || '',
-    gatewayLocation: first(o,['gateway-location','gatewayLocation','gateway','Gateway Location']) || '',
-    vat1Capacity: first(o,['vat1-capacity','vat1Capacity','Vat 1 Capacity (L)','vat1']) || '',
-    vat1Cap: (first(o,['vat1-cap','vat1Cap'])||'').toLowerCase(),
-    vat1Serial: first(o,['vat1-serial','vat1Serial']) || '',
-    vat1Condition: (first(o,['vat1-condition','vat1Condition'])||'ok').toLowerCase(),
-    vat1ConditionComments: first(o,['vat1-condition-comments','vat1ConditionComments']) || '',
-    vat1Comments: first(o,['vat1-comments','vat1Comments']) || '',
-    agitator1Location: first(o,['agitator1-location','agitator-location']) || '',
-    vat2Capacity: first(o,['vat2-capacity','vat2Capacity']) || '',
-    vat2Cap: (first(o,['vat2-cap','vat2Cap']) || (first(o,['vat2-capacity'])?'available':'na')).toLowerCase(),
-    vat2Serial: first(o,['vat2-serial','vat2Serial']) || '',
-    vat2Condition: (first(o,['vat2-condition','vat2Condition'])||'ok').toLowerCase(),
-    vat2ConditionComments: first(o,['vat2-condition-comments','vat2ConditionComments']) || '',
-    vat2Comments: first(o,['vat2-comments','vat2Comments']) || '',
-    agitator2Location: first(o,['agitator2-location']) || '',
-    sparkBars: first(o,['spark-bars','sparkBars']) || '',
-    sparkNote: first(o,['spark-note','sparkNote']) || '',
-    oneBars: first(o,['one-bars','oneBars']) || '',
-    oneNote: first(o,['one-note','oneNote']) || '',
-    otherBrand: first(o,['other-brand','otherBrand']) || '',
-    otherType: first(o,['other-type','otherType']) || '',
-    otherNotes: (first(o,['other-notes','otherNotes']) + ' ' + first(o,['current-telemetry','telemetry-comments','gateway-comments'])).trim(),
-    doorDelivered: (()=>{
-      const v = first(o,['door-delivered','vat-door-seal']);
-      if(v==='delivered' || v==='yes') return 'yes';
-      if(v==='notdelivered' || v==='no') return 'no';
-      return v ? v : 'no';
-    })(),
-    doorSize: first(o,['door-size','vat-door-seal-size','vat-door-size']) || '',
-    rjtDelivered: (()=>{
-      const v = first(o,['rjt-delivered','rjt-seal']);
-      if(v==='delivered' || v==='yes') return 'yes';
-      if(v==='notdelivered' || v==='no') return 'no';
-      return v ? v : 'no';
-    })(),
-    rjtSize: first(o,['rjt-size','rjt-seal-size']) || '',
-    timestamp: first(o,['timestamp','ts']) || 0
-  };
-  if(!r.vat1Cap){ const t=norm(r.vat1Comments); if(/cap.*unavail/.test(t)) r.vat1Cap='unavailable'; else if(/cap.*avail/.test(t)) r.vat1Cap='available'; }
-  if(!r.vat2Cap && r.vat2Capacity){ r.vat2Cap='available'; }
-  r.photos = normalizePhotos(o);
-  r._blob = norm(JSON.stringify({r}));
-  return r;
-}
-
-/* ---------- Cloud listing & fetch (network-first, SW will cache) ---------- */
-async function listCloudKeys(){
-  try{
-    const mref = storage.ref(FOLDER+'/_manifest.json');
-    const url = await mref.getDownloadURL();
-    const mani = await fetch(url).then(r=>r.json());  // allow SW to cache
-    const items = (mani.items||[]).filter(x=>/\.json$/i.test(x.key)).map(x=>x.key);
-    $('cloud-count').textContent = items.length;
-    return items;
-  }catch(_){
-    const res = await storage.ref(FOLDER).listAll();
-    $('cloud-count').textContent = res.items.length;
-    return res.items.filter(it=>/\.json$/i.test(it.name)).map(it=>it.name);
-  }
-}
-async function fetchRecord(dnOrKey){
-  try{
-    const key = dnOrKey.endsWith?.('.json') ? dnOrKey : `${dnOrKey}.json`;
-    const url = await storage.ref(`${FOLDER}/${key}`).getDownloadURL();
-    const json = await fetch(url).then(r=>r.json()); // no no-store → SW can cache for offline
-    const rec = normalizeRecord(json);
-    if(!rec.dairyNumber) rec.dairyNumber = key.replace('.json','');
-    Forms.set(rec.dairyNumber, rec);
-    return rec;
-  }catch(e){ console.warn('fetch failed', dnOrKey, e); return null; }
-}
-async function fetchMany(keys, concurrency=8, onTick){
-  let i=0, done=0; const out=[];
-  async function worker(){
-    while(i<keys.length){
-      const idx=i++; const k=keys[idx];
-      const r = await fetchRecord(k);
-      out[idx]=r;
-      done++; onTick && onTick(done, keys.length);
+  
+  <!-- SCRIPTS -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.0.3/dexie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    /* FIREBASE & DEXIE INIT */
+    const { jsPDF } = window.jspdf;
+    const firebaseConfig = {
+      apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
+      authDomain: "dairy-farm-record-system.firebaseapp.com",
+      projectId: "dairy-farm-record-system",
+      storageBucket: "dairy-farm-record-system.appspot.com",
+      messagingSenderId: "422124188212",
+      appId: "1:422124188212:web:1bd31bee8d6e91e301d061"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const firestore = firebase.firestore();
+    const db = new Dexie("OfflineData");
+    db.version(5).stores({
+      forms: "dairyNumber",
+      dairyCompanies: "++id, name",
+      teatSprayRatios: "++id, ratio",
+      pdfQueue: "++id,dairyNumber,fileName,uploaded,target"
+    });
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
     }
-  }
-  await Promise.all(Array.from({length:Math.min(concurrency,keys.length)}, worker));
-  return out;
-}
-
-/* ---------- FORM autofill ---------- */
-function setVal(id,v){ const el=$(id); if(el) el.value = v ?? ''; }
-function populateForm(rec){
-  setVal('dairyNumber', rec.dairyNumber);
-  setVal('gateway-location', rec.gatewayLocation);
-  setVal('vat1-capacity', rec.vat1Capacity); setVal('vat1-cap', rec.vat1Cap||'available');
-  setVal('vat1-serial', rec.vat1Serial); setVal('vat1-condition', rec.vat1Condition||'ok');
-  setVal('vat1-condition-comments', rec.vat1ConditionComments); setVal('vat1-comments', rec.vat1Comments);
-  setVal('agitator1-location', rec.agitator1Location);
-  setVal('vat2-capacity', rec.vat2Capacity); toggleVat2Extra();
-  setVal('vat2-cap', rec.vat2Cap|| (rec.vat2Capacity?'available':'na'));
-  setVal('vat2-serial', rec.vat2Serial); setVal('vat2-condition', rec.vat2Condition||'ok');
-  setVal('vat2-condition-comments', rec.vat2ConditionComments); setVal('vat2-comments', rec.vat2Comments);
-  setVal('agitator2-location', rec.agitator2Location);
-  setVal('spark-bars', rec.sparkBars); setVal('spark-note', rec.sparkNote);
-  setVal('one-bars', rec.oneBars); setVal('one-note', rec.oneNote);
-  setVal('other-brand', rec.otherBrand); setVal('other-type', rec.otherType); setVal('other-notes', rec.otherNotes);
-  setVal('door-delivered', rec.doorDelivered||'no'); $('door-size-wrap').classList.toggle('d-none', (rec.doorDelivered||'no')!=='yes'); setVal('door-size', rec.doorSize);
-  setVal('rjt-delivered', rec.rjtDelivered||'no'); $('rjt-size-wrap').classList.toggle('d-none', (rec.rjtDelivered||'no')!=='yes'); setVal('rjt-size', rec.rjtSize);
-}
-$('dairyNumber').addEventListener('blur', async ()=>{
-  const dn = ($('dairyNumber').value||'').trim(); if(!dn) return;
-  const rec = Forms.get(dn) || await fetchRecord(dn);
-  if(rec) populateForm(rec);
-});
-
-/* ---------- SAVE to cloud ---------- */
-async function fileToB64(input){ const f=input.files&&input.files[0]; if(!f) return ''; return await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); }); }
-async function gatherForm(){
-  const dn = ($('dairyNumber').value||'').trim(); if(!dn) throw new Error('Dairy # required');
-  const data = {
-    dairyNumber: dn, timestamp: Date.now(),
-    'gateway-location': $('gateway-location').value,
-    'vat1-capacity': $('vat1-capacity').value, 'vat1-cap': $('vat1-cap').value, 'vat1-serial': $('vat1-serial').value,
-    'vat1-condition': $('vat1-condition').value, 'vat1-condition-comments': $('vat1-condition-comments').value, 'vat1-comments': $('vat1-comments').value,
-    'agitator1-location': $('agitator1-location').value,
-    'vat2-capacity': $('vat2-capacity').value, 'vat2-cap': $('vat2-cap').value, 'vat2-serial': $('vat2-serial').value,
-    'vat2-condition': $('vat2-condition').value, 'vat2-condition-comments': $('vat2-condition-comments').value, 'vat2-comments': $('vat2-comments').value,
-    'agitator2-location': $('agitator2-location').value,
-    'spark-bars': $('spark-bars').value, 'spark-note': $('spark-note').value, 'one-bars': $('one-bars').value, 'one-note': $('one-note').value,
-    'other-brand': $('other-brand').value, 'other-type': $('other-type').value, 'other-notes': $('other-notes').value,
-    'door-delivered': $('door-delivered').value, 'door-size': $('door-size').value, 'rjt-delivered': $('rjt-delivered').value, 'rjt-size': $('rjt-size').value,
-    'gateway-photo-base64': await fileToB64($('gateway-photo')),
-    'vat1-cap-photo-base64': await fileToB64($('vat1-cap-photo')),
-    'agitator1-photo-base64': await fileToB64($('agitator1-photo')),
-    'vat2-cap-photo-base64': await fileToB64($('vat2-cap-photo')),
-    'agitator2-photo-base64': await fileToB64($('agitator2-photo')),
-    'door-photo-base64': await fileToB64($('door-photo')),
-    'rjt-photo-base64': await fileToB64($('rjt-photo'))
-  };
-  if(!data['vat2-capacity']) data['vat2-cap'] = 'na';
-  return data;
-}
-async function uploadJson(path,obj){ const blob=new Blob([JSON.stringify(obj)],{type:'application/json'}); await storage.ref(path).put(blob); }
-$('btn-save').onclick = async ()=>{
-  try{
-    $('btn-save').disabled = true; setProgress(0,1);
-    const data = await gatherForm();
-    await uploadJson(`${FOLDER}/${data.dairyNumber}.json`, data);
-    Forms.set(data.dairyNumber, normalizeRecord(data));
-    setProgress(1,1); alert('Saved ✔');
-  }catch(e){ alert('Save failed: '+(e?.message||e)); }
-  $('btn-save').disabled = false;
-};
-$('btn-print').onclick = async ()=>{
-  const dn = ($('dairyNumber').value||'').trim();
-  if(!dn){ alert('Enter a Dairy # first'); return; }
-  const rec = Forms.get(dn) || await fetchRecord(dn);
-  if(!rec){ alert('Save or sync first'); return; }
-  openPrint(dn);
-};
-
-/* ---------- Summary ---------- */
-function hasDtsCap(r){ return /(grey|gray)\s+halo/.test(r._blob) || /\bdts\b.*(cap|vent)/.test(r._blob); }
-function needsPowerPoint(r){ return /(power\s*point|splitter\s*plug|double\s*adapter)/.test(r._blob); }
-
-function vatLine(r,n){
-  const cap = n===1? r.vat1Cap : r.vat2Cap;
-  const size = n===1? r.vat1Capacity : r.vat2Capacity;
-  const cond = n===1? r.vat1Condition : r.vat2Condition;
-  const sn   = n===1? r.vat1Serial : r.vat2Serial;
-  const capTxt = cap==='available'?'Cap available':(cap==='unavailable'?'Cap unavailable':(cap==='na'?'Cap N/A':'Cap —'));
-  return `Vat ${n}: ${size||'—'} L • ${capTxt} • Cond ${cond}${sn?` • SN ${sn}`:''}`;
-}
-function signalLine(r){
-  const s = r.sparkBars ? `Spark ${r.sparkBars}${r.sparkNote? ' – '+r.sparkNote:''}` : '';
-  const o = r.oneBars ? `One NZ ${r.oneBars}${r.oneNote? ' – '+r.oneNote:''}` : '';
-  return [s,o].filter(Boolean).join(' • ');
-}
-function rubberLine(r){
-  const d = r.doorDelivered==='yes' ? `Door seal delivered${r.doorSize? ' ('+r.doorSize+')':''}` : 'Door seal notdelivered';
-  const j = r.rjtDelivered==='yes' ? `RJT delivered${r.rjtSize? ' ('+r.rjtSize+')':''}` : 'RJT notdelivered';
-  return `${d} • ${j}`;
-}
-function cardHTML(r){
-  return `
-  <div class="farm-card" id="card-${r.dairyNumber}">
-    <div class="farm-head">
-      <div class="farm-title">#${r.dairyNumber}</div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-brand" onclick="openDetails('${r.dairyNumber}')">Details</button>
-        <button class="btn btn-sm btn-brand" onclick="openPrint('${r.dairyNumber}')">Print</button>
-      </div>
-    </div>
-    <div class="farm-lines mt-1">
-      <div>${vatLine(r,1)}</div>
-      ${r.vat2Capacity? `<div>${vatLine(r,2)}</div>`:''}
-      ${signalLine(r)? `<div>Signal: ${signalLine(r)}</div>`:''}
-      <div>Rubberware: ${rubberLine(r)}</div>
-      ${r.otherBrand || r.otherType || r.otherNotes ? `<div>Other telemetry: ${(r.otherBrand||'-')} ${r.otherType? '• '+r.otherType:''} ${r.otherNotes? '• '+r.otherNotes:''}</div>`:''}
-    </div>
-  </div>`;
-}
-
-async function initSummary(){
-  if(!CloudKeys.length){ CloudKeys = await listCloudKeys(); $('list-status').textContent='Scroll to load farms…'; }
-  const wrap = $('result-cards'); wrap.innerHTML='';
-
-  // Placeholders fast
-  const frag = document.createDocumentFragment();
-  CloudKeys.forEach(k=>{
-    const dn=k.replace('.json','');
-    const d=document.createElement('div'); d.className='farm-card'; d.id='card-'+dn;
-    d.innerHTML = `
-      <div class="farm-head">
-        <div class="farm-title">#${dn}</div>
-        <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-outline-brand" onclick="openDetails('${dn}')">Details</button>
-          <button class="btn btn-sm btn-brand" onclick="openPrint('${dn}')">Print</button>
-        </div>
-      </div>
-      <div class="text-muted">Loading quick facts…</div>`;
-    frag.appendChild(d);
-  });
-  wrap.appendChild(frag);
-
-  // JIT fetch visible
-  if(observer) observer.disconnect();
-  observer = new IntersectionObserver(async entries=>{
-    for(const e of entries){
-      if(e.isIntersecting){
-        const dn = e.target.id.replace('card-','');
-        if(!Forms.get(dn)){
-          const rec = await fetchRecord(dn);
-          if(rec){ e.target.outerHTML = cardHTML(rec); refreshKPIs(); }
+    
+    /* Utility Functions */
+    function toTitleCase(str) {
+      return str.replace(/\w\S*/g, function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+      });
+    }
+    function autoCapitalizeInput(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('blur', () => { el.value = toTitleCase(el.value); });
+    }
+    
+    async function setupDairyCompanyDatalist() {
+      const defaultCompanies = [
+        "Fonterra", "Dairy Goat Co-op", "Green Valley Dairies", "Maui Milk",
+        "Oceania", "OFI", "Synlait Milk LTD", "Tatua", "Danone", "Fresha Valley LTD",
+        "Mataura Valley Milk", "Open Country Dairy LTD", "Waiu", "Westland Milk Products"
+      ];
+      const userCompanies = await db.dairyCompanies.toArray();
+      const allCompanies = [...defaultCompanies];
+      userCompanies.forEach(u => { if (!allCompanies.includes(u.name)) { allCompanies.push(u.name); } });
+      const datalist = document.getElementById('dairy-company-list');
+      datalist.innerHTML = "";
+      allCompanies.forEach(c => { 
+        const opt = document.createElement('option');
+        opt.value = c;
+        datalist.appendChild(opt);
+      });
+      const dairyCompanyInput = document.getElementById('dairy-company');
+      dairyCompanyInput.addEventListener('blur', async () => {
+        dairyCompanyInput.value = toTitleCase(dairyCompanyInput.value.trim());
+        const typedValue = dairyCompanyInput.value;
+        if (typedValue && !allCompanies.includes(typedValue)) {
+          await db.dairyCompanies.add({ name: typedValue });
+          allCompanies.push(typedValue);
+          const newOpt = document.createElement('option');
+          newOpt.value = typedValue;
+          datalist.appendChild(newOpt);
+        }
+      });
+    }
+    
+    async function fetchFarmDetails() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      const storageRef = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
+      try {
+        const url = await storageRef.getDownloadURL();
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to fetch farm details');
+        const data = await response.json();
+        if (data) {
+          document.getElementById('dairy-company').value = toTitleCase(data.dairyCompany || '');
+          document.getElementById('address').value = toTitleCase(data.address || '');
+          document.getElementById('customer-name').value = toTitleCase(data.customerName || '');
+          document.getElementById('region').value = data.region || '';
+          document.getElementById('farm-name').value = toTitleCase(data.farmName || '');
+          document.getElementById('island').value = data.island || '';
+        }
+      } catch (error) {
+        console.log('No farm details found or error:', error);
+      }
+    }
+    
+    async function checkOrCreateFormRecord() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      let record = await db.forms.get(dairyNumber);
+      if (!record) {
+        record = { dairyNumber, formData: {}, creationTime: Date.now() };
+        await db.forms.put(record);
+      }
+    }
+    async function handleDairyNumberBlur() {
+      const dairyNumber = document.getElementById('dairy-number').value.trim();
+      if (!dairyNumber) return;
+      fetchFarmDetails();
+      await checkOrCreateFormRecord();
+    }
+    
+    /* Create checklist items similar to original */
+    function createHealthSafetyItems(containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      const itemContainer = document.createElement("div");
+      itemContainer.classList.add("checklist-item");
+      const label = document.createElement("label");
+      label.textContent = "Health & Safety Notes";
+      itemContainer.appendChild(label);
+      const statusSelect = document.createElement("select");
+      statusSelect.classList.add("form-select");
+      statusSelect.name = "status-health-safety-notes";
+      statusSelect.innerHTML = `
+        <option value="ok">OK</option>
+        <option value="attention-required">Attention Required</option>
+        <option value="na">N/A</option>
+        <option value="not-checked">Not Checked</option>
+      `;
+      itemContainer.appendChild(statusSelect);
+      const commentsInput = document.createElement("input");
+      commentsInput.type = "text";
+      commentsInput.classList.add("form-control");
+      commentsInput.name = "comments-health-safety-notes";
+      commentsInput.placeholder = "Comments";
+      commentsInput.setAttribute("spellcheck", "true");
+      commentsInput.setAttribute("autocorrect", "off");
+      itemContainer.appendChild(commentsInput);
+      for (let i = 0; i < 2; i++) {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.classList.add("form-control", "image-upload");
+        itemContainer.appendChild(fileInput);
+        const preview = document.createElement("img");
+        preview.classList.add("image-preview");
+        itemContainer.appendChild(preview);
+      }
+      statusSelect.addEventListener("change", () => {
+        const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(inp => {
+          inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+        });
+      });
+      container.appendChild(itemContainer);
+    }
+    
+    function createChecklistItems() {
+      const checklistItems = [
+        "Pulsator Airline", "Long Bend Elbows", "Automatic Cup and Remover", "Diaphragm", "Receiving Can",
+        "Sanitary Trap", "Main Milk Line", "Milk Line Seals in Good Condition", "Stainless Droppers", "Long Milk Rubber",
+        "Liner", "Cluster", "Cluster Seal", "Cluster Button", "Non Return Valve at Milk Pump", "Milk Pump",
+        "Filter Housing", "Plate Cooler", "Interceptor", "Receiver Airline", "Flushing Pulsator", "Air Purge Valve",
+        "Vacuum Level", "Main Airline", "Plant Drainage - Milk Pump", "Plant Drainage - Filter/s", "Plant Drainage - Plate Cooler",
+        "Plant Drainage - Vat Entry", "Plant Wash Tap", "Wash Jetters", "Centre Gland", "Test Bucket"
+      ];
+      const container = document.getElementById("checklist-items");
+      container.innerHTML = "";
+      checklistItems.forEach(item => {
+        const itemContainer = document.createElement("div");
+        itemContainer.classList.add("checklist-item");
+        const label = document.createElement("label");
+        label.textContent = item;
+        itemContainer.appendChild(label);
+        const statusSelect = document.createElement("select");
+        statusSelect.classList.add("form-select");
+        statusSelect.name = `status-${item}`;
+        statusSelect.innerHTML = `
+          <option value="ok">OK</option>
+          <option value="attention-required">Attention Required</option>
+          <option value="na">N/A</option>
+          <option value="not-checked">Not Checked</option>
+        `;
+        itemContainer.appendChild(statusSelect);
+        const commentsInput = document.createElement("input");
+        commentsInput.type = "text";
+        commentsInput.classList.add("form-control");
+        commentsInput.name = `comments-${item}`;
+        commentsInput.placeholder = "Comments";
+        commentsInput.setAttribute("spellcheck", "true");
+        commentsInput.setAttribute("autocorrect", "off");
+        itemContainer.appendChild(commentsInput);
+        for (let i = 0; i < 2; i++) {
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.classList.add("form-control", "image-upload");
+          itemContainer.appendChild(fileInput);
+          const preview = document.createElement("img");
+          preview.classList.add("image-preview");
+          itemContainer.appendChild(preview);
+        }
+        statusSelect.addEventListener("change", () => {
+          const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+          fileInputs.forEach(inp => {
+            inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+          });
+        });
+        container.appendChild(itemContainer);
+      });
+    }
+    
+    function createSiloChecklist() {
+      const siloItems = [
+        "Inlet Valve", "Non-Return Valve", "Spray Ball", "Agitator",
+        "Silo Door", "Manhole Seal", "Vat Outlet", "Walls in Silo"
+      ];
+      const container = document.getElementById("silo-checklist");
+      container.innerHTML = "";
+      siloItems.forEach(item => {
+        const itemContainer = document.createElement("div");
+        itemContainer.classList.add("checklist-item");
+        const label = document.createElement("label");
+        label.textContent = item;
+        itemContainer.appendChild(label);
+        const statusSelect = document.createElement("select");
+        statusSelect.classList.add("form-select");
+        statusSelect.name = `status-${item}`;
+        statusSelect.innerHTML = `
+          <option value="ok">OK</option>
+          <option value="attention-required">Attention Required</option>
+          <option value="na">N/A</option>
+          <option value="not-checked">Not Checked</option>
+        `;
+        itemContainer.appendChild(statusSelect);
+        const commentsInput = document.createElement("input");
+        commentsInput.type = "text";
+        commentsInput.classList.add("form-control");
+        commentsInput.name = `comments-${item}`;
+        commentsInput.placeholder = "Comments";
+        commentsInput.setAttribute("spellcheck", "true");
+        commentsInput.setAttribute("autocorrect", "off");
+        itemContainer.appendChild(commentsInput);
+        for (let i = 0; i < 2; i++) {
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.classList.add("form-control", "image-upload");
+          itemContainer.appendChild(fileInput);
+          const preview = document.createElement("img");
+          preview.classList.add("image-preview");
+          itemContainer.appendChild(preview);
+        }
+        statusSelect.addEventListener("change", () => {
+          const fileInputs = itemContainer.querySelectorAll('input[type="file"]');
+          fileInputs.forEach(inp => {
+            inp.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+          });
+        });
+        container.appendChild(itemContainer);
+      });
+    }
+    
+    /* New Temperature Sensor Item */
+    function createTemperatureSensorItem() {
+      const container = document.getElementById("temperature-sensors-container");
+      const sensorItem = document.createElement("div");
+      sensorItem.classList.add("checklist-item");
+      const mainLabel = document.createElement("label");
+      mainLabel.textContent = "Temperature Sensor";
+      sensorItem.appendChild(mainLabel);
+      const statusSelect = document.createElement("select");
+      statusSelect.classList.add("form-select");
+      statusSelect.name = "tempSensor-status";
+      statusSelect.innerHTML = `
+        <option value="ok">OK</option>
+        <option value="attention-required">Attention Required</option>
+        <option value="na">N/A</option>
+        <option value="not-checked">Not Checked</option>
+      `;
+      sensorItem.appendChild(statusSelect);
+      
+      const extraContainer = document.createElement("div");
+      extraContainer.classList.add("temp-extra-container");
+      // Sensor Type
+      const sensorTypeLabel = document.createElement("label");
+      sensorTypeLabel.textContent = "Sensor Type (e.g. Plant Inlet Temp):";
+      extraContainer.appendChild(sensorTypeLabel);
+      const sensorTypeInput = document.createElement("input");
+      sensorTypeInput.type = "text";
+      sensorTypeInput.classList.add("form-control");
+      sensorTypeInput.name = "tempSensor-type";
+      sensorTypeInput.placeholder = "Enter sensor type";
+      extraContainer.appendChild(sensorTypeInput);
+      // Tested Temperature
+      const testedLabel = document.createElement("label");
+      testedLabel.textContent = "Tested Temperature (°C):";
+      extraContainer.appendChild(testedLabel);
+      const testedInput = document.createElement("input");
+      testedInput.type = "text";
+      testedInput.classList.add("form-control");
+      testedInput.name = "tempSensor-tested";
+      extraContainer.appendChild(testedInput);
+      // System Temperature
+      const systemLabel = document.createElement("label");
+      systemLabel.textContent = "System Temperature (°C):";
+      extraContainer.appendChild(systemLabel);
+      const systemInput = document.createElement("input");
+      systemInput.type = "text";
+      systemInput.classList.add("form-control");
+      systemInput.name = "tempSensor-system";
+      extraContainer.appendChild(systemInput);
+      // Comments
+      const tempCommentsLabel = document.createElement("label");
+      tempCommentsLabel.textContent = "Comments:";
+      extraContainer.appendChild(tempCommentsLabel);
+      const tempCommentsInput = document.createElement("input");
+      tempCommentsInput.type = "text";
+      tempCommentsInput.classList.add("form-control");
+      tempCommentsInput.name = "tempSensor-comments";
+      extraContainer.appendChild(tempCommentsInput);
+      for (let i = 0; i < 2; i++) {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.classList.add("form-control", "image-upload");
+        extraContainer.appendChild(fileInput);
+        const preview = document.createElement("img");
+        preview.classList.add("image-preview");
+        extraContainer.appendChild(preview);
+      }
+      sensorItem.appendChild(extraContainer);
+      statusSelect.addEventListener("change", () => {
+        extraContainer.style.display = (statusSelect.value === "attention-required") ? "block" : "none";
+      });
+      container.appendChild(sensorItem);
+    }
+    
+    /* LOAD, CLEAR & SAVE Data */
+    function loadFormDataFromRecord(record) {
+      const data = record.formData || {};
+      document.getElementById("dairy-number").value = record.dairyNumber;
+      for (let key in data) {
+        if (key === "checklistItems" || key === "temperatureSensors") continue;
+        const field = document.getElementById(key) || document.getElementsByName(key)[0];
+        if (field) { field.value = data[key]; }
+      }
+      if (data.checklistItems) {
+        const containers = [
+          ...document.getElementById("health-safety-top").children,
+          ...document.getElementById("checklist-items").children,
+          ...document.getElementById("silo-checklist").children
+        ];
+        containers.forEach(container => {
+          const label = container.querySelector("label");
+          if (!label) return;
+          const key = label.textContent.trim();
+          if (data.checklistItems[key]) {
+            const { status, comments, imagesBase64 } = data.checklistItems[key];
+            const statusSelect = container.querySelector("select");
+            if (statusSelect) {
+              statusSelect.value = status;
+              statusSelect.dispatchEvent(new Event("change"));
+            }
+            const commentsInput = container.querySelector('input[type="text"]');
+            if (commentsInput) { commentsInput.value = comments; }
+            if (imagesBase64 && imagesBase64.length > 0) {
+              const previews = container.querySelectorAll(".image-preview");
+              imagesBase64.forEach((img64, i) => {
+                if (previews[i]) {
+                  previews[i].src = img64;
+                  previews[i].style.display = "block";
+                }
+              });
+            }
+          }
+        });
+      }
+      if (data.temperatureSensors) {
+        const tsData = data.temperatureSensors;
+        const container = document.getElementById("temperature-sensors-container");
+        const sensorItem = container.querySelector(".checklist-item");
+        if (sensorItem) {
+          sensorItem.querySelector("select").value = tsData.status || "";
+          sensorItem.querySelector("select").dispatchEvent(new Event("change"));
+          sensorItem.querySelector("input[name='tempSensor-type']").value = tsData.type || "";
+          sensorItem.querySelector("input[name='tempSensor-tested']").value = tsData.tested || "";
+          sensorItem.querySelector("input[name='tempSensor-system']").value = tsData.system || "";
+          sensorItem.querySelector("input[name='tempSensor-comments']").value = tsData.comments || "";
         }
       }
     }
-  },{rootMargin:'600px 0px'});
-  document.querySelectorAll('.farm-card').forEach(el=>observer.observe(el));
-
-  // search (by dairy # until “Load All”)
-  $('searchBox').oninput = ()=>{
-    const q = ($('searchBox').value||'').trim();
-    document.querySelectorAll('.farm-card').forEach(el=>{
-      const dn = el.id.replace('card-','');
-      el.style.display = dn.includes(q) ? '' : 'none';
+    
+    function clearEntireForm() {
+      document.getElementById("hygiene-checklist-form").reset();
+      const imageUploads = document.querySelectorAll(".image-upload");
+      imageUploads.forEach(inp => { inp.style.display = "none"; });
+      const previews = document.querySelectorAll(".image-preview");
+      previews.forEach(img => { img.src = ""; img.style.display = "none"; });
+    }
+    
+    async function saveFormData() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) return;
+      let record = await db.forms.get(dairyNumber);
+      if (!record) { record = { dairyNumber, formData: {}, creationTime: Date.now() }; }
+      const form = document.getElementById("hygiene-checklist-form");
+      const formDataObj = new FormData(form);
+      const data = Object.fromEntries(Array.from(formDataObj.entries()).filter(([k, v]) => v.trim() !== ""));
+      const checklistContainers = [
+        ...document.getElementById("health-safety-top").children,
+        ...document.getElementById("checklist-items").children,
+        ...document.getElementById("silo-checklist").children
+      ];
+      const checklistItemsData = {};
+      for (let container of checklistContainers) {
+        const label = container.querySelector("label");
+        if (!label) continue;
+        const key = label.textContent.trim();
+        const statusSelect = container.querySelector("select");
+        const status = statusSelect ? statusSelect.value : "";
+        const commentsInput = container.querySelector('input[type="text"]');
+        let comments = commentsInput ? commentsInput.value : "";
+        let imagesBase64 = [];
+        const fileInputs = container.querySelectorAll('input[type="file"]');
+        for (let fi of fileInputs) {
+          if (fi.files && fi.files[0]) {
+            const base64 = await convertFileToBase64(fi.files[0]);
+            imagesBase64.push(base64);
+          }
+        }
+        if (status === "attention-required" && imagesBase64.length > 0) {
+          const photoNote = imagesBase64.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+        }
+        checklistItemsData[key] = { status, comments, imagesBase64 };
+      }
+      data.checklistItems = checklistItemsData;
+      
+      const tsContainer = document.getElementById("temperature-sensors-container");
+      const tsItem = tsContainer.querySelector(".checklist-item");
+      if (tsItem) {
+        const tsStatus = tsItem.querySelector("select").value;
+        const tsType = tsItem.querySelector("input[name='tempSensor-type']").value;
+        const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
+        const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
+        const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
+        data.temperatureSensors = { status: tsStatus, type: tsType, tested: tsTested, system: tsSystem, comments: tsComments };
+      }
+      
+      record.formData = data;
+      await db.forms.put(record);
+    }
+    
+    function convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    async function saveFarmDetailsToFirebase(fd) {
+      const dairyNumber = fd.get("dairy-number") || "";
+      if (!dairyNumber) return;
+      const farmDetails = {
+        dairyCompany: fd.get("dairy-company") || "",
+        address: fd.get("address") || "",
+        customerName: fd.get("customer-name") || "",
+        region: fd.get("region") || "",
+        farmName: fd.get("farm-name") || "",
+        island: fd.get("island") || ""
+      };
+      const jsonBlob = new Blob([JSON.stringify(farmDetails)], { type: "application/json" });
+      try {
+        const storageRefFarm = storage.ref(`Agora Farm Details/${dairyNumber}.json`);
+        await storageRefFarm.put(jsonBlob);
+        console.log("Farm details JSON saved to Agora Farm Details folder.");
+      } catch (err) {
+        console.error("Error saving farm details JSON:", err);
+      }
+    }
+    
+    async function uploadPendingPDFs() {
+      if (!navigator.onLine) return;
+      const queuedPDFs = await db.pdfQueue.toArray();
+      for (let pdfRecord of queuedPDFs) {
+        if(pdfRecord.target === "customers"){
+          try{
+            await uploadSinglePDFCustomer(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
+            await db.pdfQueue.delete(pdfRecord.id);
+            console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Customers.`);
+          } catch(err){ console.error("Retry PDF upload to Customers failed:", err); }
+        }
+      }
+    }
+    
+    function uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob) {
+      return new Promise((resolve, reject) => {
+        const uploadRef = storage.ref(`Agora Customers/${dairyNumber}/${fileName}`);
+        const task = uploadRef.put(pdfBlob);
+        task.on("state_changed", null, err => reject(err), () => resolve());
+      });
+    }
+    
+    window.addEventListener("online", uploadPendingPDFs);
+    
+    async function generatePDF() {
+      const dairyNumber = document.getElementById("dairy-number").value.trim();
+      if (!dairyNumber) { alert("Please enter a Dairy Number."); return; }
+      const form = document.getElementById("hygiene-checklist-form");
+      const fd = new FormData(form);
+      await saveFarmDetailsToFirebase(fd);
+      
+      const checklistContainers = [
+        ...document.getElementById("health-safety-top").children,
+        ...document.getElementById("checklist-items").children,
+        ...document.getElementById("silo-checklist").children
+      ];
+      const checklistData = [];
+      let imagePromises = [];
+      let photoStore = [];
+      checklistContainers.forEach(item => {
+        const labelEl = item.querySelector("label");
+        if (!labelEl) return;
+        const itemName = labelEl.textContent;
+        const status = item.querySelector("select")?.value || "";
+        let comments = item.querySelector("input[type='text']")?.value || "";
+        const fileInputs = item.querySelectorAll("input[type='file']");
+        let images = [];
+        fileInputs.forEach(inp => {
+          if (inp.files && inp.files[0]) { images.push(inp.files[0]); }
+        });
+        if (status === "attention-required" && images.length > 0) {
+          const photoNote = images.length > 1 ? " (see attached photos)" : " (see attached photo)";
+          comments += photoNote;
+          const p = { itemName, images: [] };
+          images.forEach((file, idx) => {
+            imagePromises.push(convertFileToBase64(file).then(result => { p.images[idx] = result; }));
+          });
+          photoStore.push(p);
+        }
+        checklistData.push([itemName, status, comments]);
+      });
+      
+      let tempSensorData = [];
+      const tsContainer = document.getElementById("temperature-sensors-container");
+      const tsItem = tsContainer.querySelector(".checklist-item");
+      if (tsItem) {
+        const tsType = tsItem.querySelector("input[name='tempSensor-type']").value;
+        const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
+        const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
+        const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
+        tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
+      }
+      
+      const pageWidth = 595;
+      const leftColLabelWidth = pageWidth * 0.15;
+      const leftColValueWidth = pageWidth * 0.20;
+      const rightColLabelWidth = pageWidth * 0.20;
+      const rightColValueWidth = pageWidth * 0.30;
+      const farmDetailsRows = [
+        [
+          { content: "Dairy Company:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("dairy-company") || ""), styles: { fontStyle: "normal" } },
+          { content: "Visit Type:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("visit-type") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Dairy Number:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("dairy-number") || ""), styles: { fontStyle: "normal" } },
+          { content: "Inspection Start Time:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("inspection-start-time") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Address:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("address") || ""), styles: { fontStyle: "normal" } },
+          { content: "Inspection End Time:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("inspection-end-time") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Customer Name:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("customer-name") || ""), styles: { fontStyle: "normal" } },
+          { content: "Inspection Completed By:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("inspection-completed-by") || ""), styles: { fontStyle: "normal" } }
+        ],
+        [
+          { content: "Visit Date:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("visit-date") || ""), styles: { fontStyle: "normal" } },
+          { content: "Call Type:", styles: { fontStyle: "bold" } },
+          { content: (fd.get("call-type") || ""), styles: { fontStyle: "normal" } }
+        ]
+      ];
+      
+      const hotWaterTemp = fd.get("hot-water-temp") || "";
+      const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
+      const milkTemp = fd.get("milk-temp") || "";
+      const milkTime = fd.get("milk-time") || "--:-- --";
+      const tempMeasurementData = [
+        ["Hot Water Temp (°C):", hotWaterTemp],
+        ["Time Taken:", hotWaterTime],
+        ["Milk Temp (°C):", milkTemp],
+        ["Time Taken:", milkTime]
+      ];
+      
+      let flowMeters = [];
+      const flowMeterMapping = {
+         "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
+         "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
+         "Teat Concentrate Flow Meter": { main: "teat-flow", extra: "teat" },
+         "Water Flow Meter": { main: "water-flow", extra: "water" }
+      };
+      for (let meter in flowMeterMapping) {
+         const prefixes = flowMeterMapping[meter];
+         const physical = fd.get(prefixes.main + "-physical") || "";
+         const system = fd.get(prefixes.main + "-system") || "";
+         flowMeters.push([meter, physical + " ml", system + " ml"]);
+         const pulseOld = fd.get(prefixes.extra + "-pulse-old") || "";
+         const pulseNew = fd.get(prefixes.extra + "-pulse-new") || "";
+         const newTestPhysical = fd.get(prefixes.extra + "-new-test-physical") || "";
+         const newSystemResult = fd.get(prefixes.extra + "-new-system-result") || "";
+         if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
+           let extraLeft = "";
+           let extraRight = "";
+           if(pulseOld) extraLeft += "Pulse Old: " + pulseOld;
+           if(pulseNew) extraLeft += (extraLeft ? ", " : "") + "Pulse New: " + pulseNew;
+           if(newTestPhysical) extraRight += "Test Physical: " + newTestPhysical;
+           if(newSystemResult) extraRight += (extraRight ? ", " : "") + "System Result: " + newSystemResult;
+           flowMeters.push(["Calibration:", extraLeft, extraRight]);
+         }
+      }
+      
+      Promise.all(imagePromises).then(() => {
+        finalizePDF();
+      }).catch(() => {
+        finalizePDF();
+      });
+      
+      function finalizePDF() {
+        const pdf = new jsPDF("p", "pt", "a4");
+        let currentY = 40;
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
+          fetch(url)
+            .then(res => res.blob())
+            .then(blob => convertFileToBase64(blob))
+            .then(logoBase64 => {
+              const img = new Image();
+              img.onload = function() {
+                const fixedLogoWidth = 150;
+                const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+                const x = (pageWidth - fixedLogoWidth) / 2;
+                pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
+                currentY = 40 + fixedLogoHeight + 20;
+                addFarmDetailsAndTables(pdf);
+              };
+              img.src = logoBase64;
+            })
+            .catch(err => {
+              console.error("Logo error:", err);
+              addFarmDetailsAndTables(pdf);
+            });
+        }).catch(err => {
+          console.error("Logo error:", err);
+          addFarmDetailsAndTables(pdf);
+        });
+        
+        function addFarmDetailsAndTables(pdf) {
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Farm Details", "", "", ""]],
+            body: farmDetailsRows,
+            theme: 'grid',
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            columnStyles: {
+              0: { cellWidth: leftColLabelWidth },
+              1: { cellWidth: leftColValueWidth },
+              2: { cellWidth: rightColLabelWidth, halign: 'right' },
+              3: { cellWidth: rightColValueWidth, halign: 'right' }
+            },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Temperature Measurement", ""]],
+            body: tempMeasurementData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Checklist Items:", 40, currentY);
+          currentY += 10;
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Item", "Status", "Comments"]],
+            body: checklistData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+            margin: { left: 40, right: 40 }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+          
+          if (tempSensorData.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Temperature Sensors:", 40, currentY);
+            currentY += 10;
+            pdf.autoTable({
+              startY: currentY,
+              head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
+              body: tempSensorData,
+              styles: { fontSize: 10, cellPadding: 5 },
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+              margin: { left: 40, right: 40 }
+            });
+            currentY = pdf.lastAutoTable.finalY + 20;
+          }
+          
+          if (flowMeters.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            pdf.text("Flow Meters:", 40, currentY);
+            currentY += 10;
+            pdf.autoTable({
+              startY: currentY,
+              head: [["Meter", "Physical Test", "System Read"]],
+              body: flowMeters,
+              styles: { fontSize: 10, cellPadding: 5 },
+              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+              margin: { left: 40, right: 40 }
+            });
+            currentY = pdf.lastAutoTable.finalY + 20;
+          }
+          
+          if (photoStore.length > 0) {
+            pdf.setFont("helvetica", "bold");
+            if (currentY + 20 > pageHeight) {
+              pdf.addPage();
+              currentY = 40;
+            }
+            pdf.text("Attached Photos:", 40, currentY);
+            currentY += 20;
+            photoStore.forEach(photoItem => {
+              if (currentY + 15 > pageHeight) {
+                pdf.addPage();
+                currentY = 40;
+              }
+              pdf.setFont("helvetica", "bold");
+              pdf.text(photoItem.itemName, 40, currentY);
+              currentY += 15;
+              let maxImgHeight = 0;
+              photoItem.images.forEach((img, idx) => {
+                try {
+                  const imgProps = pdf.getImageProperties(img);
+                  const imgWidth = 250;
+                  const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+                  if (currentY + imgHeight > pageHeight) {
+                    pdf.addPage();
+                    currentY = 40;
+                  }
+                  pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
+                  if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
+                } catch(e) {
+                  console.error("Error adding image:", e);
+                }
+              });
+              currentY += maxImgHeight + 20;
+            });
+          }
+          
+          (async function(){
+            const pdfBlob = pdf.output("blob");
+            const visitDate = fd.get("visit-date");
+            if (!visitDate) {
+              alert("Visit Date is required.");
+              return;
+            }
+            const dateParts = visitDate.split("-");
+            const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
+            const fileName = `${fd.get("dairy-number")}-form-${formattedVisitDate}.pdf`;
+            try {
+              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
+              console.log("PDF uploaded to Agora Customers folder successfully");
+            } catch(e) {
+              console.error("PDF upload to Agora Customers folder failed:", e);
+              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+            }
+            db.forms.delete(fd.get("dairy-number"));
+            pdf.save(fileName);
+            uploadPendingPDFs();
+            clearEntireForm();
+            location.reload();
+          })();
+        }
+      }
+    }
+    
+    function viewRecords() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("pilot-checks-page").style.display = "none";
+      document.getElementById("record-container").style.display = "block";
+      loadAllRecords();
+    }
+    
+    async function loadAllRecords() {
+      const recordList = document.getElementById("record-list");
+      recordList.innerHTML = "";
+      const storageRef = storage.ref("Agora Customers");
+      try {
+        const folderSnapshot = await storageRef.listAll();
+        // List any subfolders (dairy-number folders)
+        if (folderSnapshot.prefixes.length > 0) {
+          folderSnapshot.prefixes.forEach(folderRef => {
+            const dairyNumber = folderRef.name;
+            const link = document.createElement("a");
+            link.textContent = dairyNumber;
+            link.href = "#";
+            link.style.display = "block"; // ensure each link appears on its own line
+            link.addEventListener("click", () => loadRecordFiles(dairyNumber));
+            recordList.appendChild(link);
+          });
+        }
+        // In case files are stored directly in "Agora Customers"
+        if (folderSnapshot.items.length > 0) {
+          folderSnapshot.items.forEach(fileRef => {
+            const fileName = fileRef.name;
+            const link = document.createElement("a");
+            link.textContent = fileName;
+            link.href = "#";
+            link.style.display = "block";
+            link.addEventListener("click", async () => {
+              try {
+                const url = await fileRef.getDownloadURL();
+                window.open(url, "_blank");
+              } catch (err) {
+                console.error("Error fetching file:", err);
+              }
+            });
+            recordList.appendChild(link);
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching records:", error);
+      }
+    }
+    
+    async function loadRecordFiles(dairyNumber) {
+      const recordList = document.getElementById("record-list");
+      recordList.innerHTML = "";
+      const folderRef = storage.ref(`Agora Customers/${dairyNumber}`);
+      try {
+        const fileSnapshot = await folderRef.listAll();
+        fileSnapshot.items.forEach(fileRef => {
+          const fileName = fileRef.name;
+          const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
+          const displayName = dateMatch ? dateMatch[0] : fileName;
+          const fileLink = document.createElement("a");
+          fileLink.textContent = displayName;
+          fileLink.href = "#";
+          fileLink.style.display = "block";
+          fileLink.addEventListener("click", async () => {
+            try {
+              const url = await fileRef.getDownloadURL();
+              window.open(url, "_blank");
+            } catch (err) {
+              console.error("Error fetching file:", err);
+            }
+          });
+          recordList.appendChild(fileLink);
+        });
+        const backBtn = document.createElement("button");
+        backBtn.textContent = "Back to Records";
+        backBtn.className = "back-button";
+        backBtn.addEventListener("click", loadAllRecords);
+        recordList.appendChild(backBtn);
+      } catch (err) {
+        console.error("Error fetching record files:", err);
+      }
+    }
+    
+    function filterRecords() {
+      const searchValue = document.getElementById("search-dairy-number").value.toLowerCase();
+      const recordList = document.getElementById("record-list");
+      const links = recordList.getElementsByTagName("a");
+      for (let i = 0; i < links.length; i++) {
+        const txt = links[i].textContent || links[i].innerText;
+        links[i].style.display = txt.toLowerCase().includes(searchValue) ? "" : "none";
+      }
+    }
+    
+    function goBack() {
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    function pilotChecks() {
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("record-container").style.display = "none";
+      document.getElementById("pilot-checks-page").style.display = "block";
+    }
+    
+    function backToForm() {
+      document.getElementById("pilot-checks-page").style.display = "none";
+      document.getElementById("form-container").style.display = "block";
+    }
+    
+    function setupFlowMeterTolerance(physicalId, systemId, calibrationId) {
+      const physicalInput = document.getElementById(physicalId);
+      const systemInput = document.getElementById(systemId);
+      const calibrationContainer = document.getElementById(calibrationId);
+      function updateCalibrationDisplay() {
+        const physicalValue = parseFloat(physicalInput.value);
+        const systemValue = parseFloat(systemInput.value);
+        if (!isNaN(physicalValue) && !isNaN(systemValue)) {
+          const tolerance = 0.05 * physicalValue;
+          calibrationContainer.style.display = (Math.abs(physicalValue - systemValue) > tolerance) ? "block" : "none";
+        } else {
+          calibrationContainer.style.display = "none";
+        }
+      }
+      physicalInput.addEventListener("input", updateCalibrationDisplay);
+      systemInput.addEventListener("input", updateCalibrationDisplay);
+    }
+    
+    document.addEventListener("DOMContentLoaded", async () => {
+      const fieldsToAutoCap = ["dairy-number", "dairy-company", "address", "customer-name", "farm-name", "inspection-completed-by"];
+      fieldsToAutoCap.forEach(autoCapitalizeInput);
+      await setupDairyCompanyDatalist();
+      createHealthSafetyItems("health-safety-top");
+      createChecklistItems();
+      createSiloChecklist();
+      createTemperatureSensorItem();
+      const form = document.getElementById("hygiene-checklist-form");
+      form.addEventListener("input", saveFormData);
+      form.addEventListener("change", saveFormData);
+      uploadPendingPDFs();
+      setupFlowMeterTolerance("acid-flow-physical", "acid-flow-system", "acid-calibration");
+      setupFlowMeterTolerance("chlor-flow-physical", "chlor-flow-system", "chlor-calibration");
+      setupFlowMeterTolerance("teat-flow-physical", "teat-flow-system", "teat-calibration");
+      setupFlowMeterTolerance("water-flow-physical", "water-flow-system", "water-calibration");
     });
-  };
-  $('btnClearSearch').onclick = ()=>{ $('searchBox').value=''; $('searchBox').dispatchEvent(new Event('input')); };
-
-  // Load All
-  $('btnLoadAll').onclick = async ()=>{
-    setProgress(0,1);
-    const keys = CloudKeys.slice();
-    await fetchMany(keys, 8, (done,total)=>setProgress(done,total));
-    const rows = Array.from(Forms.values()).sort((a,b)=>String(a.dairyNumber).localeCompare(String(b.dairyNumber)));
-    $('result-cards').innerHTML = rows.map(cardHTML).join('');
-    $('list-status').textContent = 'All farms loaded (available offline).';
-    enableFullTextSearch();
-    refreshKPIs();
-  };
-}
-function enableFullTextSearch(){
-  $('searchBox').oninput = ()=>{
-    const q = norm(($('searchBox').value||'')); const rows = Array.from(Forms.values());
-    rows.forEach(r=>{
-      const show = !q || r._blob.includes(q) || String(r.dairyNumber).includes(q);
-      const el = document.getElementById('card-'+r.dairyNumber);
-      if(el) el.style.display = show? '' : 'none';
-    });
-  };
-}
-function refreshKPIs(){
-  const rows = Array.from(Forms.values());
-  $('kpi-dts').textContent = rows.filter(hasDtsCap).length;
-  $('kpi-power').textContent = rows.filter(needsPowerPoint).length;
-  $('kpi-rubber').textContent = rows.filter(r=>r.doorDelivered==='yes'||r.rjtDelivered==='yes').length;
-  const sizes={}; rows.forEach(r=>{ const a=r.vat1Capacity; const b=r.vat2Capacity; if(a) sizes[a]=(sizes[a]||0)+1; if(b) sizes[b]=(sizes[b]||0)+1; });
-  let html='<table class="table table-sm table-bordered mb-2"><thead><tr><th>Vat Size (L)</th><th>Count</th></tr></thead><tbody>';
-  Object.entries(sizes).sort((x,y)=>parseInt(x[0])-parseInt(y[0])).forEach(([s,c])=>{ html+=`<tr><td>${s}</td><td>${c}</td></tr>`; });
-  html+='</tbody></table>'; $('size-table').innerHTML=html;
-}
-
-/* ---------- Details / Print ---------- */
-function labeledPhoto(label,src){ if(!src) return ''; return `<div class="print-card"><div class="print-label">${label}</div><div class="print-photos"><img src="${src}"></div></div>`; }
-function brochureHTML(r, withPhotos){
-  const doorCount = (r.doorDelivered==='yes') ? (r.vat2Capacity?2:1) : 0;
-  return `
-  <div class="print-head">
-    <img src="${window._logoURL||''}" alt="logo">
-    <div><div class="print-title">Vat Pre-Check – #${r.dairyNumber}</div><div class="print-sub">Spark ${r.sparkBars||'-'} • One NZ ${r.oneBars||'-'}</div></div>
-  </div>
-  <div class="print-grid">
-    <div class="print-card"><div class="print-label">Vat 1</div>
-      <div>Capacity: <b>${r.vat1Capacity||'-'}</b></div>
-      <div>Cap: <b>${(r.vat1Cap||'-').toUpperCase()}</b></div>
-      <div>Serial: <b>${r.vat1Serial||'-'}</b></div>
-      <div>Condition: <b>${r.vat1Condition||'-'}</b> ${r.vat1ConditionComments? '• '+r.vat1ConditionComments:''}</div>
-      <div>Agitator: ${r.agitator1Location||'-'}</div>
-      <div>Notes: ${r.vat1Comments||'-'}</div>
-    </div>
-    <div class="print-card"><div class="print-label">Vat 2</div>
-      <div>Capacity: <b>${r.vat2Capacity||'-'}</b></div>
-      <div>Cap: <b>${(r.vat2Cap||'-').toUpperCase()}</b></div>
-      <div>Serial: <b>${r.vat2Serial||'-'}</b></div>
-      <div>Condition: <b>${r.vat2Condition||'-'}</b> ${r.vat2ConditionComments? '• '+r.vat2ConditionComments:''}</div>
-      <div>Agitator: ${r.agitator2Location||'-'}</div>
-      <div>Notes: ${r.vat2Comments||'-'}</div>
-    </div>
-    <div class="print-card"><div class="print-label">Gateway</div><div>Location: <b>${r.gatewayLocation||'-'}</b></div></div>
-    <div class="print-card"><div class="print-label">Other Telemetry</div><div>Brand: <b>${r.otherBrand||'-'}</b> • Type: <b>${r.otherType||'-'}</b></div><div>Notes: ${r.otherNotes||'-'}</div></div>
-    <div class="print-card"><div class="print-label">Rubberware</div>
-      <div>Door Seal: <b>${r.doorDelivered==='yes'?'Delivered':'No'}</b> ${r.doorSize? '• '+r.doorSize:''} ${doorCount? '(x'+doorCount+')':''}</div>
-      <div>RJT: <b>${r.rjtDelivered==='yes'?'Delivered':'No'}</b> ${r.rjtSize? '• '+r.rjtSize:''}</div>
-    </div>
-  </div>
-  ${withPhotos ? `
-  <div class="print-grid" style="margin-top:10px">
-    ${labeledPhoto('Gateway', r.photos.gateway)}
-    ${labeledPhoto('Vat 1 Cap', r.photos.vat1Cap)}
-    ${labeledPhoto('Agitator (Vat 1)', r.photos.agitator1)}
-    ${labeledPhoto('Vat 2 Cap', r.photos.vat2Cap)}
-    ${labeledPhoto('Agitator (Vat 2)', r.photos.agitator2)}
-    ${labeledPhoto('Door Seal', r.photos.door)}
-    ${labeledPhoto('RJT', r.photos.rjt)}
-  </div>`:''}
-  `;
-}
-window.openDetails = async (dn)=>{
-  const r = Forms.get(dn) || await fetchRecord(dn);
-  if(!r) return;
-  $('tab-summary').click();
-  $('result-cards').innerHTML = `<div class="farm-card">${brochureHTML(r,false)}</div>`;
-  window.scrollTo({top:0,behavior:'smooth'});
-};
-window.openPrint = async (dn)=>{
-  const r = Forms.get(dn) || await fetchRecord(dn);
-  if(!r) return;
-  const sheet = brochureHTML(r,true);
-  const css=document.querySelector('style').innerHTML;
-  const w=window.open('', '_blank');
-  w.document.write(`<html><head><meta charset="utf-8"><title>Print #${dn}</title><style>body{font-family:Inter,Arial,sans-serif;padding:16px}${css}</style></head><body>${sheet}</body></html>`);
-  w.document.close(); setTimeout(()=>w.print(),350);
-};
-
-/* ---------- Exports & Admin ---------- */
-$('btn-export-sizes').onclick = ()=>{
-  const rows = Array.from(Forms.values());
-  const out=[['Dairy','Vat','Size (L)','Serial','Door Seal','RJT']];
-  rows.forEach(r=>{ if(r.vat1Capacity) out.push([r.dairyNumber,'1',r.vat1Capacity,r.vat1Serial||'',r.doorDelivered||'',r.rjtDelivered||'']); if(r.vat2Capacity) out.push([r.dairyNumber,'2',r.vat2Capacity,r.vat2Serial||'',r.doorDelivered||'',r.rjtDelivered||'']); });
-  const csv = out.map(r=>r.map(s=>`"${String(s).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='vat_sizes.csv'; a.click();
-};
-$('btn-sync').onclick = async ()=>{
-  setProgress(0,1);
-  const keys = CloudKeys.length? CloudKeys : await listCloudKeys();
-  await fetchMany(keys, 8, (done,total)=>setProgress(done,total));
-  alert('Full sync complete (normalized). You can print/view brochures offline for fetched farms.');
-};
-$('btn-owner-report').onclick = ()=>{
-  const rows = Array.from(Forms.values()).sort((a,b)=>String(a.dairyNumber).localeCompare(String(b.dairyNumber)));
-  if(!rows.length){ alert('Load Summary or run Full Sync first.'); return; }
-  const css = document.querySelector('style').innerHTML;
-  const sizes={}; rows.forEach(r=>{ const a=r.vat1Capacity; const b=r.vat2Capacity; if(a) sizes[a]=(sizes[a]||0)+1; if(b) sizes[b]=(sizes[b]||0)+1; });
-  let sizeHtml = '<table class="table table-sm table-bordered"><thead><tr><th>Vat Size (L)</th><th>Count</th></tr></thead><tbody>';
-  Object.entries(sizes).sort((x,y)=>parseInt(x[0])-parseInt(y[0])).forEach(([s,c])=>sizeHtml+=`<tr><td>${s}</td><td>${c}</td></tr>`); sizeHtml+='</tbody></table>';
-  let serialHtml = '<table class="table table-sm table-bordered"><thead><tr><th>Dairy</th><th>Vat</th><th>Size</th><th>Serial</th></tr></thead><tbody>';
-  rows.forEach(r=>{ if(r.vat1Capacity) serialHtml+=`<tr><td>${r.dairyNumber}</td><td>1</td><td>${r.vat1Capacity}</td><td>${r.vat1Serial||''}</td></tr>`; if(r.vat2Capacity) serialHtml+=`<tr><td>${r.dairyNumber}</td><td>2</td><td>${r.vat2Capacity}</td><td>${r.vat2Serial||''}</td></tr>`; }); serialHtml+='</tbody></table>';
-  const body = `<div class="app"><div class="brand-header"><img src="${window._logoURL||''}" class="brand-logo" style="display:block"><div class="brand-title"><h1>Owner Report</h1><div class="brand-sub">${new Date().toISOString().slice(0,10)}</div></div></div><div class="panel"><div class="section-title">Vat Size Breakdown</div>${sizeHtml}</div><div class="panel"><div class="section-title">Serial Numbers</div>${serialHtml}</div>${rows.map(r=>`<div class="panel">${brochureHTML(r,true)}</div>`).join('')}</div>`;
-  const blob = new Blob([`<html><head><meta charset="utf-8"><title>Owner Report</title><style>${css}</style></head><body>${body}</body></html>`],{type:'text/html'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='owner_report.html'; a.click();
-};
-
-/* ---------- Service worker ---------- */
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('./service-worker.js').catch(()=>{}); }
-
-/* ---------- Init ---------- */
-window.addEventListener('DOMContentLoaded', async ()=>{
-  try{ CloudKeys = await listCloudKeys(); }catch(_){ }
-});
-</script>
+  </script>
 </body>
 </html>
