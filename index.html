@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"/>
 
   <style>
-    /* Overall background and common styling (your original look) */
+    /* Overall background and common styling (original look) */
     body{
       background-color:#d2d7dd;
       color:#000;
@@ -36,6 +36,7 @@
     h4 { color:#555; margin-top:10px; }
 
     label{ color:#000; margin-top:10px; }
+    .checklist-item{ border-bottom:1px solid #e6e6e6; padding-bottom:10px; margin-bottom:10px; }
 
     button{
       background-color:#FFD700;
@@ -50,9 +51,7 @@
     button:hover{ background-color:#E6C200; }
     .back-button{ background-color:#002B5C; color:#fff; }
 
-    .checklist-item{ border-bottom:1px solid #e6e6e6; padding-bottom:10px; margin-bottom:10px; }
-
-    .image-upload{ display:none; } /* only shown when Attention Required */
+    .image-upload{ display:none; } /* shown only when Attention Required */
     .image-preview{
       display:none;
       max-width:200px;
@@ -287,15 +286,20 @@
         </div>
       </div>
 
+      <!-- Hidden: used when admin loads a previous form so we overwrite same file -->
+      <input type="hidden" id="existing-file-name" name="existing-file-name" value="">
+
       <!-- Buttons -->
       <div style="text-align:center;">
         <button type="button" onclick="generatePDF()">Generate PDF</button>
         <button type="button" onclick="viewRecords()">View All Records</button>
         <button type="button" onclick="pilotChecks()">Pilot Checks</button>
+        <!-- Admin -->
+        <button type="button" class="back-button" onclick="adminLoadLastForm()">Admin: Load Last Form</button>
       </div>
     </form>
 
-    <div class="version">Version 6.1 (Agora)</div>
+    <div class="version">Version 6.2 (Agora)</div>
   </div>
 
   <!-- RECORDS VIEW -->
@@ -491,7 +495,8 @@
       input.name = commentsName;
       input.placeholder = 'Comments';
       input.setAttribute('spellcheck','true');
-      input.setAttribute('autocorrect','off');
+      input.setAttribute('autocorrect','on');   // autocorrect ON for comments
+      input.setAttribute('autocomplete','on');
       wrap.appendChild(input);
 
       for (let i=0;i<2;i++){
@@ -592,6 +597,9 @@
       comments.className = 'form-control';
       comments.name = 'tempSensor-comments';
       comments.placeholder = 'Comments';
+      comments.setAttribute('spellcheck','true');
+      comments.setAttribute('autocorrect','on');   // autocorrect ON
+      comments.setAttribute('autocomplete','on');
       row.appendChild(comments);
 
       for (let i=0;i<2;i++){
@@ -664,6 +672,7 @@
       document.getElementById("hygiene-checklist-form").reset();
       document.querySelectorAll(".image-upload").forEach(i => i.style.display="none");
       document.querySelectorAll(".image-preview").forEach(i => { i.src=""; i.style.display="none"; });
+      document.getElementById("existing-file-name").value = "";
     }
 
     async function saveFormData(){
@@ -772,9 +781,54 @@
       });
     }
 
+    /* ---------- SNAPSHOT storage for Admin Load ---------- */
+    async function uploadFormSnapshot(dairyNumber, snapshotObj){
+      const blob = new Blob([JSON.stringify(snapshotObj)], { type: "application/json" });
+      const ref  = storage.ref(`Agora Form Snapshots/${dairyNumber}/last.json`);
+      await ref.put(blob);
+    }
+
+    async function fetchFormSnapshot(dairyNumber){
+      const ref = storage.ref(`Agora Form Snapshots/${dairyNumber}/last.json`);
+      try{
+        const url = await ref.getDownloadURL();
+        const res = await fetch(url);
+        if(!res.ok) throw new Error("Snapshot fetch failed");
+        return await res.json();
+      }catch(e){
+        console.log("No snapshot available for", dairyNumber, e);
+        return null;
+      }
+    }
+
+    async function adminLoadLastForm(){
+      const dn = (prompt("Enter Dairy Number to load last saved form:") || "").trim();
+      if(!dn) return;
+
+      // Try Firebase snapshot first
+      const snap = await fetchFormSnapshot(dn);
+      if(snap && snap.formData){
+        loadFormDataFromRecord({ dairyNumber: dn, formData: snap.formData });
+        document.getElementById("existing-file-name").value = snap.lastFileName || "";
+        document.getElementById("dairy-number").value = dn;
+        alert("Last saved form loaded for " + dn + ". Edit and Generate PDF to overwrite the same file.");
+        return;
+      }
+
+      // Fallback to local draft
+      const local = await db.forms.get(dn);
+      if(local){
+        loadFormDataFromRecord(local);
+        document.getElementById("existing-file-name").value = "";
+        alert("Loaded local draft for " + dn + ".");
+      }else{
+        alert("No last form found for " + dn + ".");
+      }
+    }
+
     window.addEventListener("online", uploadPendingPDFs);
 
-    /* -------------------- PDF (MATCHES YOUR STYLE) -------------------- */
+    /* -------------------- PDF (ORIGINAL STYLE) -------------------- */
     async function generatePDF(){
       const dairyNumber = document.getElementById("dairy-number").value.trim();
       if (!dairyNumber){ alert("Please enter a Dairy Number."); return; }
@@ -783,7 +837,7 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
 
-      // Build checklist data + photo capture
+      // Build checklist data + collect photos
       const sections = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
@@ -798,23 +852,44 @@
         const itemName = labelEl.textContent;
         const status = item.querySelector("select")?.value || "";
         let comments = item.querySelector("input[type='text']")?.value || "";
+
+        // Files chosen now
         const fileInputs = item.querySelectorAll("input[type='file']");
         const images = [];
         fileInputs.forEach(inp => { if (inp.files && inp.files[0]) images.push(inp.files[0]); });
 
-        if (status === "attention-required" && images.length){
-          comments += images.length > 1 ? " (see attached photos)" : " (see attached photo)";
-          const p = { itemName, images: [] };
+        // Also include any previews already on screen (e.g., when loading snapshot)
+        const previews = item.querySelectorAll(".image-preview");
+        previews.forEach(p=>{
+          if (p.src && p.src.startsWith("data:")) {
+            const b64 = p.src;
+            // treat existing previews as images too
+            const idx = (photoStore.find(ps=>ps.itemName===itemName) || {images:[]}).images.length;
+            if (!photoStore.find(ps=>ps.itemName===itemName)){
+              photoStore.push({ itemName, images: [] });
+            }
+            photoStore.find(ps=>ps.itemName===itemName).images.push(b64);
+          }
+        });
+
+        if (images.length){
+          let p = photoStore.find(ps => ps.itemName === itemName);
+          if(!p){ p = { itemName, images: [] }; photoStore.push(p); }
           images.forEach((file, idx)=>{
-            imagePromises.push(convertFileToBase64(file).then(b64 => { p.images[idx] = b64; }));
+            imagePromises.push(convertFileToBase64(file).then(b64 => { p.images.push(b64); }));
           });
-          photoStore.push(p);
+        }
+
+        // Only append note if attention-required and there are images
+        const hasImages = (photoStore.find(ps=>ps.itemName===itemName)?.images.length || 0) > 0;
+        if (status === "attention-required" && hasImages){
+          comments += hasImages > 1 ? " (see attached photos)" : " (see attached photo)";
         }
 
         checklistData.push([itemName, status, comments]);
       });
 
-      // Temperature Sensors section
+      // Temperature Sensors
       let tempSensorData = [];
       let tempSensorNote = "";
       const tsRow = document.querySelector("#temperature-sensors-container .checklist-item");
@@ -926,7 +1001,7 @@
       });
       currentY = pdf.lastAutoTable.finalY + 20;
 
-      // Checklist (navy header + striped rows)
+      // Checklist (navy header + light stripe rows)
       pdf.autoTable({
         startY: currentY,
         head: [["Item","Status","Comments"]],
@@ -940,7 +1015,7 @@
       });
       currentY = pdf.lastAutoTable.finalY + 20;
 
-      // Temperature Sensors section
+      // Temperature Sensors block
       if (tempSensorNote || tempSensorData.length){
         pdf.setFont("helvetica","bold");
         ensure(20); pdf.text("Temperature Sensors:", side, currentY); currentY += 14;
@@ -990,6 +1065,7 @@
         ensure(20); pdf.text("Attached Photos:", side, currentY); currentY += 20;
 
         for (const photoItem of photoStore){
+          if (!photoItem.images.length) continue;
           ensure(15); pdf.text(photoItem.itemName, side, currentY); currentY += 15;
           let maxImgHeight = 0;
           for (let i=0;i<photoItem.images.length;i++){
@@ -1005,17 +1081,82 @@
         }
       }
 
-      // Upload + Save
+      // ---- Upload + Save (with snapshot + same-name overwrite) ----
       const visitDate = fd.get("visit-date");
       if (!visitDate){ alert("Visit Date is required."); return; }
       const parts = visitDate.split("-");
       const stamp = parts[2] + "-" + parts[1] + "-" + parts[0].substr(2);
-      const fileName = `${fd.get("dairy-number")}-form-${stamp}.pdf`;
+
+      let fileName = (document.getElementById("existing-file-name").value || "").trim();
+      if(!fileName){ fileName = `${fd.get("dairy-number")}-form-${stamp}.pdf`; }
+
+      // Build a full snapshot of this form to save to Firebase
+      const fullSnapshot = {
+        dairyNumber: fd.get("dairy-number") || "",
+        lastFileName: fileName,
+        formData: (()=>{
+          const data = {};
+          // Base fields
+          const formDataObj = new FormData(document.getElementById("hygiene-checklist-form"));
+          for(const [k,v] of formDataObj.entries()){ if(k) data[k] = v; }
+
+          // Checklist w/ photos from photoStore (and visible previews)
+          const sections2 = [
+            ...document.getElementById("health-safety-top").children,
+            ...document.getElementById("checklist-items").children,
+            ...document.getElementById("silo-checklist").children
+          ];
+          const checklistItemsData = {};
+          for (let c of sections2){
+            const label = c.querySelector("label"); if (!label) continue;
+            const key   = label.textContent.trim();
+            const sel   = c.querySelector("select");
+            const status= sel ? sel.value : "";
+            const txt   = c.querySelector('input[type="text"]');
+            const comments = txt ? txt.value : "";
+
+            // Aggregate images from previews first
+            let imagesBase64 = [];
+            c.querySelectorAll(".image-preview").forEach(p=>{
+              if (p.src && p.src.startsWith("data:")) imagesBase64.push(p.src);
+            });
+            // Then add any freshly-chosen files already converted and collected
+            const ps = (photoStore || []).find(p => p.itemName === key);
+            if(ps && ps.images && ps.images.length){
+              // avoid duplicates
+              ps.images.forEach(b64 => { if(!imagesBase64.includes(b64)) imagesBase64.push(b64); });
+            }
+
+            checklistItemsData[key] = { status, comments, imagesBase64 };
+          }
+          data.checklistItems = checklistItemsData;
+
+          // Temperature sensors
+          const tsR = document.querySelector("#temperature-sensors-container .checklist-item");
+          if (tsR){
+            data.temperatureSensors = {
+              status:   tsR.querySelector("select")?.value || "",
+              type:     tsR.querySelector("input[name='tempSensor-type']")?.value || "",
+              tested:   tsR.querySelector("input[name='tempSensor-tested']")?.value || "",
+              system:   tsR.querySelector("input[name='tempSensor-system']")?.value || "",
+              comments: tsR.querySelector("input[name='tempSensor-comments']")?.value || ""
+            };
+          }
+          return data;
+        })()
+      };
 
       const pdfBlob = pdf.output("blob");
+
+      // 1) Upload / overwrite the PDF
       try{ await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob); }
       catch(e){ await db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded:false, target:"customers" }); }
 
+      // 2) Save/overwrite the snapshot JSON
+      try{ await uploadFormSnapshot(dairyNumber, fullSnapshot); }
+      catch(e){ console.error("Snapshot upload failed:", e); }
+
+      // Reset UI
       db.forms.delete(fd.get("dairy-number"));
       pdf.save(fileName);
       uploadPendingPDFs();
@@ -1076,7 +1217,7 @@
           a.textContent=displayName; a.href="#"; a.style.display="block";
           a.addEventListener("click", async ()=>{
             try{ const url = await fileRef.getDownloadURL(); window.open(url, "_blank"); }
-            catch(err){ console.error("Error fetching file:", err); }
+            catch(err){ console.error("Error fetching record file:", err); }
           });
           list.appendChild(a);
         });
