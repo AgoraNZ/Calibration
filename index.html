@@ -299,7 +299,7 @@
       </div>
     </form>
 
-    <div class="version">Version 6.2 (Agora)</div>
+    <div class="version">Version 6.3 (Agora)</div>
   </div>
 
   <!-- RECORDS VIEW -->
@@ -828,7 +828,7 @@
 
     window.addEventListener("online", uploadPendingPDFs);
 
-    /* -------------------- PDF (ORIGINAL STYLE) -------------------- */
+    /* -------------------- PDF (ORIGINAL BLUE TABLES) -------------------- */
     async function generatePDF(){
       const dairyNumber = document.getElementById("dairy-number").value.trim();
       if (!dairyNumber){ alert("Please enter a Dairy Number."); return; }
@@ -853,34 +853,28 @@
         const status = item.querySelector("select")?.value || "";
         let comments = item.querySelector("input[type='text']")?.value || "";
 
-        // Files chosen now
+        // files chosen now
         const fileInputs = item.querySelectorAll("input[type='file']");
         const images = [];
         fileInputs.forEach(inp => { if (inp.files && inp.files[0]) images.push(inp.files[0]); });
 
-        // Also include any previews already on screen (e.g., when loading snapshot)
+        // previews already visible (from snapshots)
         const previews = item.querySelectorAll(".image-preview");
         previews.forEach(p=>{
           if (p.src && p.src.startsWith("data:")) {
-            const b64 = p.src;
-            // treat existing previews as images too
-            const idx = (photoStore.find(ps=>ps.itemName===itemName) || {images:[]}).images.length;
-            if (!photoStore.find(ps=>ps.itemName===itemName)){
-              photoStore.push({ itemName, images: [] });
-            }
-            photoStore.find(ps=>ps.itemName===itemName).images.push(b64);
+            let ps = photoStore.find(x=>x.itemName===itemName);
+            if(!ps){ ps = { itemName, images: [] }; photoStore.push(ps); }
+            if(!ps.images.includes(p.src)) ps.images.push(p.src);
           }
         });
 
         if (images.length){
-          let p = photoStore.find(ps => ps.itemName === itemName);
-          if(!p){ p = { itemName, images: [] }; photoStore.push(p); }
-          images.forEach((file, idx)=>{
-            imagePromises.push(convertFileToBase64(file).then(b64 => { p.images.push(b64); }));
-          });
+          let ps = photoStore.find(x=>x.itemName===itemName);
+          if(!ps){ ps = { itemName, images: [] }; photoStore.push(ps); }
+          images.forEach((file)=> imagePromises.push(convertFileToBase64(file).then(b64 => { if(!ps.images.includes(b64)) ps.images.push(b64); })));
         }
 
-        // Only append note if attention-required and there are images
+        // Add comment note only when attention-required *and* there are images
         const hasImages = (photoStore.find(ps=>ps.itemName===itemName)?.images.length || 0) > 0;
         if (status === "attention-required" && hasImages){
           comments += hasImages > 1 ? " (see attached photos)" : " (see attached photo)";
@@ -889,50 +883,53 @@
         checklistData.push([itemName, status, comments]);
       });
 
-      // Temperature Sensors
-      let tempSensorData = [];
-      let tempSensorNote = "";
+      // Temperature Sensors (always produce blue table; note inside table if OK)
       const tsRow = document.querySelector("#temperature-sensors-container .checklist-item");
+      let tempTableRows = [];
       if (tsRow){
         const s  = tsRow.querySelector("select")?.value || "";
         const ty = tsRow.querySelector("input[name='tempSensor-type']")?.value || "";
         const tt = tsRow.querySelector("input[name='tempSensor-tested']")?.value || "";
         const sy = tsRow.querySelector("input[name='tempSensor-system']")?.value || "";
         const cm = tsRow.querySelector("input[name='tempSensor-comments']")?.value || "";
-        if (s === "ok") tempSensorNote = "All temperature probes were tested and are within specification.";
-        else if (s === "attention-required") tempSensorData.push([ty, tt, sy, cm]);
+
+        if (s === "attention-required" || ty || tt || sy || cm){
+          tempTableRows.push([ty, tt, sy, cm]);
+        } else {
+          tempTableRows = [[{content: "All temperature probes were tested and are within specification.", colSpan: 4, styles: {halign: "left"}}]];
+        }
+      } else {
+        tempTableRows = [[{content: "All temperature probes were tested and are within specification.", colSpan: 4, styles: {halign: "left"}}]];
       }
 
-      // Flow meters
-      const flowMeters = [];
-      const map = {
-        "Acid Flow Meter":  { main:"acid-flow",  extra:"acid"  },
-        "Chlor Alkali Flow Meter": { main:"chlor-flow", extra:"chlor" },
-        "Teat Concentrate Flow Meter": { main:"teat-flow",  extra:"teat"  },
-        "Water Flow Meter": { main:"water-flow", extra:"water" }
-      };
-      for (const meter of Object.keys(map)){
-        const px = map[meter];
-        const physical = (fd.get(px.main+"-physical") || "").trim();
-        const system   = (fd.get(px.main+"-system")   || "").trim();
-        if (physical || system){
-          flowMeters.push([meter, physical ? physical+" ml" : "", system ? system+" ml" : ""]);
-        }
+      // Flow meters (always show 4 meters table; add calibration rows only if present)
+      const meters = [
+        {name:"Acid Flow Meter",   main:"acid-flow",  extra:"acid"},
+        {name:"Chlor Alkali Flow Meter", main:"chlor-flow", extra:"chlor"},
+        {name:"Teat Concentrate Flow Meter", main:"teat-flow",  extra:"teat"},
+        {name:"Water Flow Meter",  main:"water-flow", extra:"water"}
+      ];
+      const flowRows = [];
+      meters.forEach(m=>{
+        const phys = (fd.get(m.main + "-physical") || "").trim();
+        const sys  = (fd.get(m.main + "-system")   || "").trim();
+        const pText = phys ? (phys + " ml") : "";
+        const sText = sys  ? (sys  + " ml") : "";
+        flowRows.push([m.name, pText, sText]);
 
-        const pulseOld = (fd.get(px.extra+"-pulse-old") || "").trim();
-        const pulseNew = (fd.get(px.extra+"-pulse-new") || "").trim();
-        const newPhys  = (fd.get(px.extra+"-new-test-physical") || "").trim();
-        const newSys   = (fd.get(px.extra+"-new-system-result") || "").trim();
-
-        if (pulseOld || pulseNew || newPhys || newSys){
-          let left = "", right = "";
-          if (pulseOld) left += "Pulse Old: " + pulseOld;
-          if (pulseNew) left += (left ? ", " : "") + "Pulse New: " + pulseNew;
-          if (newPhys) right += "Test Physical: " + newPhys;
-          if (newSys)  right += (right ? ", " : "") + "System Result: " + newSys;
-          flowMeters.push(["Calibration:", left, right]);
+        const po = (fd.get(m.extra+"-pulse-old") || "").trim();
+        const pn = (fd.get(m.extra+"-pulse-new") || "").trim();
+        const nt = (fd.get(m.extra+"-new-test-physical") || "").trim();
+        const ns = (fd.get(m.extra+"-new-system-result") || "").trim();
+        if (po || pn || nt || ns){
+          let left="", right="";
+          if (po) left += "Pulse Old: " + po;
+          if (pn) left += (left ? ", " : "") + "Pulse New: " + pn;
+          if (nt) right += "Test Physical: " + nt;
+          if (ns) right += (right ? ", " : "") + "System Result: " + ns;
+          flowRows.push(["Calibration:", left, right]);
         }
-      }
+      });
 
       await Promise.all(imagePromises);
 
@@ -940,11 +937,8 @@
       const pdf = new jsPDF("p","pt","a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const side = 40;
-      const top = 40;
-      const bottom = 40;
+      const side = 40, top = 40, bottom = 40;
       let currentY = top;
-
       function ensure(h){ if (currentY + h > pageHeight - bottom){ pdf.addPage(); currentY = top; } }
 
       // Logo
@@ -1001,7 +995,7 @@
       });
       currentY = pdf.lastAutoTable.finalY + 20;
 
-      // Checklist (navy header + light stripe rows)
+      // Checklist
       pdf.autoTable({
         startY: currentY,
         head: [["Item","Status","Comments"]],
@@ -1015,49 +1009,36 @@
       });
       currentY = pdf.lastAutoTable.finalY + 20;
 
-      // Temperature Sensors block
-      if (tempSensorNote || tempSensorData.length){
-        pdf.setFont("helvetica","bold");
-        ensure(20); pdf.text("Temperature Sensors:", side, currentY); currentY += 14;
-        if (tempSensorNote){
-          pdf.setFont("helvetica","normal");
-          const wrapped = pdf.splitTextToSize(tempSensorNote, pageWidth - side*2);
-          ensure(wrapped.length*12 + 6);
-          pdf.text(wrapped, side, currentY);
-          currentY += wrapped.length*12 + 8;
-        }
-        if (tempSensorData.length){
-          pdf.autoTable({
-            startY: currentY,
-            head: [["Sensor Type","Tested Temp (°C)","System Temp (°C)","Comments"]],
-            body: tempSensorData,
-            theme: "grid",
-            styles: { fontSize:10, cellPadding:6, lineColor:[220,224,230], lineWidth:0.2 },
-            headStyles: { fillColor:[0,43,92], textColor:255 },
-            alternateRowStyles: { fillColor:[245,247,250] },
-            margin: { left: side, right: side }
-          });
-          currentY = pdf.lastAutoTable.finalY + 20;
-        }
-      }
+      // Temperature Sensors (ALWAYS blue table)
+      pdf.setFont("helvetica","bold");
+      ensure(20); pdf.text("Temperature Sensors:", side, currentY); currentY += 10;
+      pdf.autoTable({
+        startY: currentY,
+        head: [["Sensor Type","Tested Temp (°C)","System Temp (°C)","Comments"]],
+        body: tempTableRows,
+        theme: "grid",
+        styles: { fontSize:10, cellPadding:6, lineColor:[220,224,230], lineWidth:0.2 },
+        headStyles: { fillColor:[0,43,92], textColor:255 },
+        alternateRowStyles: { fillColor:[245,247,250] },
+        margin: { left: side, right: side }
+      });
+      currentY = pdf.lastAutoTable.finalY + 20;
 
-      // Flow meters
-      if (flowMeters.length){
-        pdf.setFont("helvetica","bold");
-        ensure(20); pdf.text("Flow Meters:", side, currentY); currentY += 10;
-        pdf.autoTable({
-          startY: currentY,
-          head: [["Meter","Physical Test","System Read"]],
-          body: flowMeters,
-          theme: "grid",
-          styles: { fontSize:10, cellPadding:6, lineColor:[220,224,230], lineWidth:0.2 },
-          headStyles: { fillColor:[0,43,92], textColor:255 },
-          alternateRowStyles: { fillColor:[245,247,250] },
-          margin: { left: side, right: side },
-          columnStyles: { 0:{cellWidth:240}, 1:{cellWidth:120}, 2:{cellWidth:"auto"} }
-        });
-        currentY = pdf.lastAutoTable.finalY + 20;
-      }
+      // Flow Meters (ALWAYS blue table)
+      pdf.setFont("helvetica","bold");
+      ensure(20); pdf.text("Flow Meters:", side, currentY); currentY += 10;
+      pdf.autoTable({
+        startY: currentY,
+        head: [["Meter","Physical Test","System Read"]],
+        body: flowRows,
+        theme: "grid",
+        styles: { fontSize:10, cellPadding:6, lineColor:[220,224,230], lineWidth:0.2 },
+        headStyles: { fillColor:[0,43,92], textColor:255 },
+        alternateRowStyles: { fillColor:[245,247,250] },
+        margin: { left: side, right: side },
+        columnStyles: { 0:{cellWidth:240}, 1:{cellWidth:120}, 2:{cellWidth:"auto"} }
+      });
+      currentY = pdf.lastAutoTable.finalY + 20;
 
       // Photos
       if (photoStore.length){
@@ -1081,7 +1062,7 @@
         }
       }
 
-      // ---- Upload + Save (with snapshot + same-name overwrite) ----
+      // ---- Upload + Save (snapshot + same-name overwrite) ----
       const visitDate = fd.get("visit-date");
       if (!visitDate){ alert("Visit Date is required."); return; }
       const parts = visitDate.split("-");
@@ -1096,11 +1077,9 @@
         lastFileName: fileName,
         formData: (()=>{
           const data = {};
-          // Base fields
           const formDataObj = new FormData(document.getElementById("hygiene-checklist-form"));
           for(const [k,v] of formDataObj.entries()){ if(k) data[k] = v; }
 
-          // Checklist w/ photos from photoStore (and visible previews)
           const sections2 = [
             ...document.getElementById("health-safety-top").children,
             ...document.getElementById("checklist-items").children,
@@ -1114,24 +1093,14 @@
             const status= sel ? sel.value : "";
             const txt   = c.querySelector('input[type="text"]');
             const comments = txt ? txt.value : "";
-
-            // Aggregate images from previews first
             let imagesBase64 = [];
             c.querySelectorAll(".image-preview").forEach(p=>{
               if (p.src && p.src.startsWith("data:")) imagesBase64.push(p.src);
             });
-            // Then add any freshly-chosen files already converted and collected
-            const ps = (photoStore || []).find(p => p.itemName === key);
-            if(ps && ps.images && ps.images.length){
-              // avoid duplicates
-              ps.images.forEach(b64 => { if(!imagesBase64.includes(b64)) imagesBase64.push(b64); });
-            }
-
             checklistItemsData[key] = { status, comments, imagesBase64 };
           }
           data.checklistItems = checklistItemsData;
 
-          // Temperature sensors
           const tsR = document.querySelector("#temperature-sensors-container .checklist-item");
           if (tsR){
             data.temperatureSensors = {
@@ -1148,15 +1117,12 @@
 
       const pdfBlob = pdf.output("blob");
 
-      // 1) Upload / overwrite the PDF
       try{ await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob); }
       catch(e){ await db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded:false, target:"customers" }); }
 
-      // 2) Save/overwrite the snapshot JSON
       try{ await uploadFormSnapshot(dairyNumber, fullSnapshot); }
       catch(e){ console.error("Snapshot upload failed:", e); }
 
-      // Reset UI
       db.forms.delete(fd.get("dairy-number"));
       pdf.save(fileName);
       uploadPendingPDFs();
