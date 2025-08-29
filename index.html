@@ -27,9 +27,7 @@
       max-width: 800px;
       width: 100%;
     }
-    .record-container {
-      background-color: #fff;
-    }
+    .record-container { background-color: #fff; }
     h1, h2, h3, h4 { text-align: center; }
     h1, h2 { color: #333; }
     h3 { color: #002B5C; margin-top: 20px; }
@@ -72,17 +70,9 @@
       width: 45%;
       min-width: 280px;
     }
-    .farm-checks ul {
-      list-style: none;
-      padding: 0;
-    }
-    .farm-checks li {
-      padding: 5px 0;
-      border-bottom: 1px solid #ddd;
-    }
-    .farm-checks li:last-child {
-      border-bottom: none;
-    }
+    .farm-checks ul { list-style: none; padding: 0; }
+    .farm-checks li { padding: 5px 0; border-bottom: 1px solid #ddd; }
+    .farm-checks li:last-child { border-bottom: none; }
     .version { text-align: center; margin-top: 20px; color: #333; font-size: 12px; }
   </style>
 </head>
@@ -367,7 +357,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script>
     /* FIREBASE & DEXIE INIT */
-    const { jsPDF } = window.jspdf;
     const firebaseConfig = {
       apiKey: "AIzaSyDr9nA44Kkej*****GUzbMDECI8cTFI",
       authDomain: "dairy-farm-record-system.firebaseapp.com",
@@ -846,12 +835,12 @@
       if (!navigator.onLine) return;
       const queuedPDFs = await db.pdfQueue.toArray();
       for (let pdfRecord of queuedPDFs) {
-        if(pdfRecord.target === "customers"){
-          try{
+        if (pdfRecord.target === "customers") {
+          try {
             await uploadSinglePDFCustomer(pdfRecord.dairyNumber, pdfRecord.fileName, pdfRecord.pdfBlob);
             await db.pdfQueue.delete(pdfRecord.id);
             console.log(`Retried PDF for ${pdfRecord.dairyNumber} uploaded successfully to Customers.`);
-          } catch(err){ console.error("Retry PDF upload to Customers failed:", err); }
+          } catch (err) { console.error("Retry PDF upload to Customers failed:", err); }
         }
       }
     }
@@ -873,14 +862,15 @@
       const fd = new FormData(form);
       await saveFarmDetailsToFirebase(fd);
       
+      // Build checklist + photos
       const checklistContainers = [
         ...document.getElementById("health-safety-top").children,
         ...document.getElementById("checklist-items").children,
         ...document.getElementById("silo-checklist").children
       ];
       const checklistData = [];
-      let imagePromises = [];
-      let photoStore = [];
+      const imagePromises = [];
+      const photoStore = [];
       checklistContainers.forEach(item => {
         const labelEl = item.querySelector("label");
         if (!labelEl) return;
@@ -888,7 +878,7 @@
         const status = item.querySelector("select")?.value || "";
         let comments = item.querySelector("input[type='text']")?.value || "";
         const fileInputs = item.querySelectorAll("input[type='file']");
-        let images = [];
+        const images = [];
         fileInputs.forEach(inp => {
           if (inp.files && inp.files[0]) { images.push(inp.files[0]); }
         });
@@ -903,35 +893,100 @@
         }
         checklistData.push([itemName, status, comments]);
       });
-      
-      // --- Temperature Sensors PDF content logic (feature added) ---
-   // --- Temperature Sensors PDF content logic ---
-let tempSensorData = [];
-let tempSensorNote = "";
-const tsContainer = document.getElementById("temperature-sensors-container");
-const tsItem = tsContainer ? tsContainer.querySelector(".checklist-item") : null;
 
-if (tsItem) {
-  const tsStatus  = tsItem.querySelector("select")?.value || "";
-  const tsType    = tsItem.querySelector("input[name='tempSensor-type']")?.value || "";
-  const tsTested  = tsItem.querySelector("input[name='tempSensor-tested']")?.value || "";
-  const tsSystem  = tsItem.querySelector("input[name='tempSensor-system']")?.value || "";
-  const tsComments= tsItem.querySelector("input[name='tempSensor-comments']")?.value || "";
+      // Temperature Sensors PDF content logic
+      let tempSensorData = [];
+      let tempSensorNote = "";
+      const tsContainer = document.getElementById("temperature-sensors-container");
+      const tsItem = tsContainer ? tsContainer.querySelector(".checklist-item") : null;
+      if (tsItem) {
+        const tsStatus   = tsItem.querySelector("select")?.value || "";
+        const tsType     = tsItem.querySelector("input[name='tempSensor-type']")?.value || "";
+        const tsTested   = tsItem.querySelector("input[name='tempSensor-tested']")?.value || "";
+        const tsSystem   = tsItem.querySelector("input[name='tempSensor-system']")?.value || "";
+        const tsComments = tsItem.querySelector("input[name='tempSensor-comments']")?.value || "";
+        if (tsStatus === "ok") {
+          tempSensorNote = "All temperature probes were tested and are within specification.";
+        } else if (tsStatus === "attention-required") {
+          tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
+        }
+      }
 
-  if (tsStatus === "ok") {
-    tempSensorNote = "All temperature probes were tested and are within specification.";
-  } else if (tsStatus === "attention-required") {
-    tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
-  }
-} // For "na" or "not-checked" we add nothing.
-      
-      // --- end Temperature Sensors logic ---
-      
-      const pageWidth = 595;
-      const leftColLabelWidth = pageWidth * 0.15;
-      const leftColValueWidth = pageWidth * 0.20;
+      // Flow meters + calibration
+      const flowMeters = [];
+      const flowMeterMapping = {
+        "Acid Flow Meter":  { main: "acid-flow",  extra: "acid"  },
+        "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
+        "Teat Concentrate Flow Meter": { main: "teat-flow",  extra: "teat"  },
+        "Water Flow Meter": { main: "water-flow", extra: "water" }
+      };
+      for (const meter of Object.keys(flowMeterMapping)) {
+        const prefixes = flowMeterMapping[meter];
+        const physical = (fd.get(prefixes.main + "-physical") || "").trim();
+        const system   = (fd.get(prefixes.main + "-system")   || "").trim();
+        if (physical || system) {
+          flowMeters.push([meter, physical ? physical + " ml" : "", system ? system + " ml" : ""]);
+        }
+        const pulseOld        = (fd.get(prefixes.extra + "-pulse-old") || "").trim();
+        const pulseNew        = (fd.get(prefixes.extra + "-pulse-new") || "").trim();
+        const newTestPhysical = (fd.get(prefixes.extra + "-new-test-physical") || "").trim();
+        const newSystemResult = (fd.get(prefixes.extra + "-new-system-result") || "").trim();
+        if (pulseOld || pulseNew || newTestPhysical || newSystemResult) {
+          let extraLeft = "";
+          let extraRight = "";
+          if (pulseOld) extraLeft += "Pulse Old: " + pulseOld;
+          if (pulseNew) extraLeft += (extraLeft ? ", " : "") + "Pulse New: " + pulseNew;
+          if (newTestPhysical) extraRight += "Test Physical: " + newTestPhysical;
+          if (newSystemResult) extraRight += (extraRight ? ", " : "") + "System Result: " + newSystemResult;
+          flowMeters.push(["Calibration:", extraLeft, extraRight]);
+        }
+      }
+
+      // Wait for photo base64 conversions
+      await Promise.all(imagePromises);
+
+      // Create PDF safely (no top-level destructuring)
+      const pdf = new window.jspdf.jsPDF("p", "pt", "a4");
+      let currentY = 40;
+      const pageWidth  = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const topMargin = 40, sideMargin = 40, bottomMargin = 40;
+
+      function ensureSpace(h) {
+        if (currentY + h > pageHeight - bottomMargin) {
+          pdf.addPage();
+          currentY = topMargin;
+        }
+      }
+
+      // Try to add logo
+      try {
+        const url = await storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL();
+        const res = await fetch(url);
+        if (res.ok) {
+          const blob = await res.blob();
+          const logoBase64 = await convertFileToBase64(blob);
+          const img = new Image();
+          const imgLoaded = new Promise(resolve => { img.onload = resolve; });
+          img.src = logoBase64;
+          await imgLoaded;
+          const fixedLogoWidth = 150;
+          const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
+          const x = (pageWidth - fixedLogoWidth) / 2;
+          pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
+          currentY = 40 + fixedLogoHeight + 20;
+        }
+      } catch (e) {
+        console.warn("Logo not added:", e);
+      }
+
+      // Farm details layout widths
+      const leftColLabelWidth  = pageWidth * 0.15;
+      const leftColValueWidth  = pageWidth * 0.20;
       const rightColLabelWidth = pageWidth * 0.20;
       const rightColValueWidth = pageWidth * 0.30;
+
+      // Farm details rows
       const farmDetailsRows = [
         [
           { content: "Dairy Company:", styles: { fontStyle: "bold" } },
@@ -964,7 +1019,8 @@ if (tsItem) {
           { content: (fd.get("call-type") || ""), styles: { fontStyle: "normal" } }
         ]
       ];
-      
+
+      // Temperature measurements
       const hotWaterTemp = fd.get("hot-water-temp") || "";
       const hotWaterTime = fd.get("hot-water-time") || "--:-- --";
       const milkTemp = fd.get("milk-temp") || "";
@@ -975,247 +1031,157 @@ if (tsItem) {
         ["Milk Temp (°C):", milkTemp],
         ["Time Taken:", milkTime]
       ];
-      
-      let flowMeters = [];
-const flowMeterMapping = {
-  "Acid Flow Meter":  { main: "acid-flow",  extra: "acid"  },
-  "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
-  "Teat Concentrate Flow Meter": { main: "teat-flow",  extra: "teat"  },
-  "Water Flow Meter": { main: "water-flow", extra: "water" }
-};
 
-for (const meter of Object.keys(flowMeterMapping)) {
-  const prefixes = flowMeterMapping[meter];
-
-  // values from the form
-  const physical = (fd.get(prefixes.main + "-physical") || "").trim();
-  const system   = (fd.get(prefixes.main + "-system")   || "").trim();
-
-  // only push a meter row if at least one value exists
-  if (physical || system) {
-    const physStr = physical ? physical + " ml" : "";
-    const sysStr  = system   ? system   + " ml" : "";
-    flowMeters.push([meter, physStr, sysStr]);
-  }
-
-  // optional calibration details
-  const pulseOld        = (fd.get(prefixes.extra + "-pulse-old") || "").trim();
-  const pulseNew        = (fd.get(prefixes.extra + "-pulse-new") || "").trim();
-  const newTestPhysical = (fd.get(prefixes.extra + "-new-test-physical") || "").trim();
-  const newSystemResult = (fd.get(prefixes.extra + "-new-system-result") || "").trim();
-
-  if (pulseOld || pulseNew || newTestPhysical || newSystemResult) {
-    let extraLeft = "";
-    let extraRight = "";
-    if (pulseOld) extraLeft += "Pulse Old: " + pulseOld;
-    if (pulseNew) extraLeft += (extraLeft ? ", " : "") + "Pulse New: " + pulseNew;
-    if (newTestPhysical) extraRight += "Test Physical: " + newTestPhysical;
-    if (newSystemResult) extraRight += (extraRight ? ", " : "") + "System Result: " + newSystemResult;
-    flowMeters.push(["Calibration:", extraLeft, extraRight]);
-  }
-}
-      
-      Promise.all(imagePromises).then(() => {
-        finalizePDF();
-      }).catch(() => {
-        finalizePDF();
-      });
-      
-      function finalizePDF() {
-        const pdf = new jsPDF("p", "pt", "a4");
-        let currentY = 40;
-        const pageWidth = pdf.internal.pageSize.getWidth();
-const pageHeight = pdf.internal.pageSize.getHeight();
-
-const topMargin = 40;
-const sideMargin = 40;
-const bottomMargin = 40;
-function ensureSpace(h) {
-  if (currentY + h > pageHeight - bottomMargin) {
-    pdf.addPage();
-    currentY = topMargin;
-  }
-}
-        storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
-          fetch(url)
-            .then(res => res.blob())
-            .then(blob => convertFileToBase64(blob))
-            .then(logoBase64 => {
-              const img = new Image();
-              img.onload = function() {
-                const fixedLogoWidth = 150;
-                const fixedLogoHeight = (img.height * fixedLogoWidth) / img.width;
-                const x = (pageWidth - fixedLogoWidth) / 2;
-                pdf.addImage(logoBase64, "JPEG", x, 40, fixedLogoWidth, fixedLogoHeight);
-                currentY = 40 + fixedLogoHeight + 20;
-                addFarmDetailsAndTables(pdf);
-              };
-              img.src = logoBase64;
-            })
-            .catch(err => {
-              console.error("Logo error:", err);
-              addFarmDetailsAndTables(pdf);
-            });
-        }).catch(err => {
-          console.error("Logo error:", err);
-          addFarmDetailsAndTables(pdf);
-        });
-        
-function addFarmDetailsAndTables(pdf) {
-  // Farm Details
-  pdf.autoTable({
-    startY: currentY,
-    head: [["Farm Details", "", "", ""]],
-    body: farmDetailsRows,
-    theme: 'grid',
-    styles: { fontSize: 10, cellPadding: 5 },
-    headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-    columnStyles: {
-      0: { cellWidth: leftColLabelWidth },
-      1: { cellWidth: leftColValueWidth },
-      2: { cellWidth: rightColLabelWidth, halign: 'right' },
-      3: { cellWidth: rightColValueWidth, halign: 'right' }
-    },
-    margin: { left: sideMargin, right: sideMargin }
-  });
-  currentY = pdf.lastAutoTable.finalY + 20;
-
-  // Temperature Measurement
-  pdf.autoTable({
-    startY: currentY,
-    head: [["Temperature Measurement", ""]],
-    body: tempMeasurementData,
-    styles: { fontSize: 10, cellPadding: 5 },
-    headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-    margin: { left: sideMargin, right: sideMargin }
-  });
-  currentY = pdf.lastAutoTable.finalY + 20;
-
-  // Checklist Items  (this was mislabeled as "Flow Meters:" in your file)
-  pdf.setFont("helvetica", "bold");
-  ensureSpace(25);
-  pdf.text("Checklist Items:", sideMargin, currentY);
-  currentY += 10;
-  pdf.autoTable({
-    startY: currentY,
-    head: [["Item", "Status", "Comments"]],
-    body: checklistData,
-    styles: { fontSize: 10, cellPadding: 5 },
-    headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-    margin: { left: sideMargin, right: sideMargin }
-  });
-  currentY = pdf.lastAutoTable.finalY + 20;
-
-  // Temperature Sensors
-  if (tempSensorNote || tempSensorData.length > 0) {
-    ensureSpace(30);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Temperature Sensors:", sideMargin, currentY);
-    currentY += 14;
-
-    if (tempSensorNote) {
-      pdf.setFont("helvetica", "normal");
-      const wrapped = pdf.splitTextToSize(tempSensorNote, pageWidth - sideMargin * 2);
-      ensureSpace(wrapped.length * 12 + 6);
-      pdf.text(wrapped, sideMargin, currentY);
-      currentY += wrapped.length * 12 + 8;
-    }
-
-    if (tempSensorData.length > 0) {
+      // Farm details table
       pdf.autoTable({
         startY: currentY,
-        head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
-        body: tempSensorData,
+        head: [["Farm Details", "", "", ""]],
+        body: farmDetailsRows,
+        theme: 'grid',
         styles: { fontSize: 10, cellPadding: 5 },
-        headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+        headStyles: { fillColor: [0,43,92], textColor: [255,255,255] },
+        columnStyles: {
+          0: { cellWidth: leftColLabelWidth },
+          1: { cellWidth: leftColValueWidth },
+          2: { cellWidth: rightColLabelWidth, halign: 'right' },
+          3: { cellWidth: rightColValueWidth, halign: 'right' }
+        },
         margin: { left: sideMargin, right: sideMargin }
       });
       currentY = pdf.lastAutoTable.finalY + 20;
-    }
-  }
 
-  // Flow Meters (render the actual flowMeters table ONCE)
-  if (flowMeters.length > 0) {
-    pdf.setFont("helvetica", "bold");
-    ensureSpace(25);
-    pdf.text("Flow Meters:", sideMargin, currentY);
-    currentY += 10;
-    pdf.autoTable({
-      startY: currentY,
-      head: [["Meter", "Physical Test", "System Read"]],
-      body: flowMeters,
-      styles: { fontSize: 10, cellPadding: 5 },
-      headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-      margin: { left: sideMargin, right: sideMargin }
-    });
-    currentY = pdf.lastAutoTable.finalY + 20;
-  }
+      // Temperature measurement table
+      pdf.autoTable({
+        startY: currentY,
+        head: [["Temperature Measurement", ""]],
+        body: tempMeasurementData,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [0,43,92], textColor: [255,255,255] },
+        margin: { left: sideMargin, right: sideMargin }
+      });
+      currentY = pdf.lastAutoTable.finalY + 20;
 
-  // Photos
-  if (photoStore.length > 0) {
-    pdf.setFont("helvetica", "bold");
-    if (currentY + 20 > pageHeight) {
-      pdf.addPage();
-      currentY = topMargin;
-    }
-    pdf.text("Attached Photos:", sideMargin, currentY);
-    currentY += 20;
-
-    photoStore.forEach(photoItem => {
-      if (currentY + 15 > pageHeight) {
-        pdf.addPage();
-        currentY = topMargin;
-      }
+      // Checklist
       pdf.setFont("helvetica", "bold");
-      pdf.text(photoItem.itemName, sideMargin, currentY);
-      currentY += 15;
+      ensureSpace(25);
+      pdf.text("Checklist Items:", sideMargin, currentY);
+      currentY += 10;
+      pdf.autoTable({
+        startY: currentY,
+        head: [["Item", "Status", "Comments"]],
+        body: checklistData,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: [0,43,92], textColor: [255,255,255] },
+        margin: { left: sideMargin, right: sideMargin }
+      });
+      currentY = pdf.lastAutoTable.finalY + 20;
 
-      let maxImgHeight = 0;
-      photoItem.images.forEach((img, idx) => {
-        try {
-          const imgProps = pdf.getImageProperties(img);
-          const imgWidth = 250;
-          const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-          if (currentY + imgHeight > pageHeight - bottomMargin) {
+      // Temperature sensors
+      if (tempSensorNote || tempSensorData.length > 0) {
+        ensureSpace(30);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Temperature Sensors:", sideMargin, currentY);
+        currentY += 14;
+
+        if (tempSensorNote) {
+          pdf.setFont("helvetica", "normal");
+          const wrapped = pdf.splitTextToSize(tempSensorNote, pageWidth - sideMargin * 2);
+          ensureSpace(wrapped.length * 12 + 6);
+          pdf.text(wrapped, sideMargin, currentY);
+          currentY += wrapped.length * 12 + 8;
+        }
+
+        if (tempSensorData.length > 0) {
+          pdf.autoTable({
+            startY: currentY,
+            head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
+            body: tempSensorData,
+            styles: { fontSize: 10, cellPadding: 5 },
+            headStyles: { fillColor: [0,43,92], textColor: [255,255,255] },
+            margin: { left: sideMargin, right: sideMargin }
+          });
+          currentY = pdf.lastAutoTable.finalY + 20;
+        }
+      }
+
+      // Flow meters
+      if (flowMeters.length > 0) {
+        pdf.setFont("helvetica", "bold");
+        ensureSpace(25);
+        pdf.text("Flow Meters:", sideMargin, currentY);
+        currentY += 10;
+        pdf.autoTable({
+          startY: currentY,
+          head: [["Meter", "Physical Test", "System Read"]],
+          body: flowMeters,
+          styles: { fontSize: 10, cellPadding: 5 },
+          headStyles: { fillColor: [0,43,92], textColor: [255,255,255] },
+          margin: { left: sideMargin, right: sideMargin }
+        });
+        currentY = pdf.lastAutoTable.finalY + 20;
+      }
+
+      // Photos
+      if (photoStore.length > 0) {
+        pdf.setFont("helvetica", "bold");
+        if (currentY + 20 > pageHeight) {
+          pdf.addPage();
+          currentY = topMargin;
+        }
+        pdf.text("Attached Photos:", sideMargin, currentY);
+        currentY += 20;
+
+        photoStore.forEach(photoItem => {
+          if (currentY + 15 > pageHeight) {
             pdf.addPage();
             currentY = topMargin;
           }
-          pdf.addImage(img, "JPEG", sideMargin + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
-          if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
-        } catch(e) {
-          console.error("Error adding image:", e);
-        }
-      });
-      currentY += maxImgHeight + 20;
-    });
-  }
-}
-          
-          (async function(){
-            const pdfBlob = pdf.output("blob");
-            const visitDate = fd.get("visit-date");
-            if (!visitDate) {
-              alert("Visit Date is required.");
-              return;
-            }
-            const dateParts = visitDate.split("-");
-            const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
-            const fileName = `${fd.get("dairy-number")}-form-${formattedVisitDate}.pdf`;
+          pdf.setFont("helvetica", "bold");
+          pdf.text(photoItem.itemName, sideMargin, currentY);
+          currentY += 15;
+
+          let maxImgHeight = 0;
+          photoItem.images.forEach((img, idx) => {
             try {
-              await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
-              console.log("PDF uploaded to Agora Customers folder successfully");
-            } catch(e) {
-              console.error("PDF upload to Agora Customers folder failed:", e);
-              db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+              const props = pdf.getImageProperties(img);
+              const imgWidth = 250;
+              const imgHeight = (props.height * imgWidth) / props.width;
+              if (currentY + imgHeight > pageHeight - bottomMargin) {
+                pdf.addPage();
+                currentY = topMargin;
+              }
+              const x = sideMargin + idx * (imgWidth + 10);
+              pdf.addImage(img, "JPEG", x, currentY, imgWidth, imgHeight);
+              if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
+            } catch (e) {
+              console.error("Error adding image:", e);
             }
-            db.forms.delete(fd.get("dairy-number"));
-            pdf.save(fileName);
-            uploadPendingPDFs();
-            clearEntireForm();
-            location.reload();
-          })();
-        }
+          });
+          currentY += maxImgHeight + 20;
+        });
       }
+
+      // Save & upload
+      const pdfBlob = pdf.output("blob");
+      const visitDate = fd.get("visit-date");
+      if (!visitDate) { alert("Visit Date is required."); return; }
+      const dateParts = visitDate.split("-");
+      const formattedVisitDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0].substr(2);
+      const fileName = `${fd.get("dairy-number")}-form-${formattedVisitDate}.pdf`;
+
+      try {
+        await uploadSinglePDFCustomer(dairyNumber, fileName, pdfBlob);
+        console.log("PDF uploaded to Agora Customers folder successfully");
+      } catch (e) {
+        console.error("PDF upload to Agora Customers folder failed:", e);
+        await db.pdfQueue.add({ dairyNumber, fileName, pdfBlob, uploaded: false, target: "customers" });
+      }
+
+      await db.forms.delete(fd.get("dairy-number"));
+      pdf.save(fileName);
+      uploadPendingPDFs();
+      clearEntireForm();
+      location.reload();
     }
     
     function viewRecords() {
@@ -1238,12 +1204,12 @@ function addFarmDetailsAndTables(pdf) {
             const link = document.createElement("a");
             link.textContent = dairyNumber;
             link.href = "#";
-            link.style.display = "block"; // ensure each link appears on its own line
+            link.style.display = "block";
             link.addEventListener("click", () => loadRecordFiles(dairyNumber));
             recordList.appendChild(link);
           });
         }
-        // In case files are stored directly in "Agora Customers"
+        // Files directly in "Agora Customers"
         if (folderSnapshot.items.length > 0) {
           folderSnapshot.items.forEach(fileRef => {
             const fileName = fileRef.name;
@@ -1335,7 +1301,7 @@ function addFarmDetailsAndTables(pdf) {
         const physicalValue = parseFloat(physicalInput.value);
         const systemValue = parseFloat(systemInput.value);
         if (!isNaN(physicalValue) && !isNaN(systemValue)) {
-          const tolerance = 0.05 * physicalValue;
+          const tolerance = 0.05 * physicalValue; // 5%
           calibrationContainer.style.display = (Math.abs(physicalValue - systemValue) > tolerance) ? "block" : "none";
         } else {
           calibrationContainer.style.display = "none";
