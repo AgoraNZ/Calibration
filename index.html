@@ -904,16 +904,27 @@
         checklistData.push([itemName, status, comments]);
       });
       
+      // --- Temperature Sensors PDF content logic (feature added) ---
       let tempSensorData = [];
+      let tempSensorNote = "";
       const tsContainer = document.getElementById("temperature-sensors-container");
       const tsItem = tsContainer.querySelector(".checklist-item");
       if (tsItem) {
+        const tsStatus = tsItem.querySelector("select").value;
         const tsType = tsItem.querySelector("input[name='tempSensor-type']").value;
         const tsTested = tsItem.querySelector("input[name='tempSensor-tested']").value;
         const tsSystem = tsItem.querySelector("input[name='tempSensor-system']").value;
         const tsComments = tsItem.querySelector("input[name='tempSensor-comments']").value;
-        tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
+
+        if (tsStatus === "ok") {
+          // If OK, show the summary line instead of leaving the section empty
+          tempSensorNote = "All temperature probes were tested and are within specification.";
+        } else if (tsStatus === "attention-required") {
+          // Only show detailed row if attention required (and optional fields captured)
+          tempSensorData.push([tsType, tsTested, tsSystem, tsComments]);
+        } // For "na" or "not-checked" we add nothing.
       }
+      // --- end Temperature Sensors logic ---
       
       const pageWidth = 595;
       const leftColLabelWidth = pageWidth * 0.15;
@@ -1067,22 +1078,37 @@
             margin: { left: 40, right: 40 }
           });
           currentY = pdf.lastAutoTable.finalY + 20;
-          
-          if (tempSensorData.length > 0) {
+
+          // --- Temperature Sensors section render (supports OK summary) ---
+          if (tempSensorNote || tempSensorData.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Temperature Sensors:", 40, currentY);
             currentY += 10;
-            pdf.autoTable({
-              startY: currentY,
-              head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
-              body: tempSensorData,
-              styles: { fontSize: 10, cellPadding: 5 },
-              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-              margin: { left: 40, right: 40 }
-            });
-            currentY = pdf.lastAutoTable.finalY + 20;
+
+            if (tempSensorNote) {
+              pdf.setFont("helvetica", "normal");
+              // Wrap note if near bottom
+              if (currentY + 15 > pageHeight) { pdf.addPage(); currentY = 40; }
+              pdf.text(tempSensorNote, 40, currentY);
+              currentY += 15;
+            }
+
+            if (tempSensorData.length > 0) {
+              pdf.autoTable({
+                startY: currentY,
+                head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
+                body: tempSensorData,
+                styles: { fontSize: 10, cellPadding: 5 },
+                headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+                margin: { left: 40, right: 40 }
+              });
+              currentY = pdf.lastAutoTable.finalY + 20;
+            } else {
+              currentY += 10;
+            }
           }
-          
+          // --- end Temperature Sensors render ---
+
           if (flowMeters.length > 0) {
             pdf.setFont("helvetica", "bold");
             pdf.text("Flow Meters:", 40, currentY);
