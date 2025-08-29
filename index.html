@@ -977,31 +977,43 @@ if (tsItem) {
       ];
       
       let flowMeters = [];
-      const flowMeterMapping = {
-         "Acid Flow Meter": { main: "acid-flow", extra: "acid" },
-         "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
-         "Teat Concentrate Flow Meter": { main: "teat-flow", extra: "teat" },
-         "Water Flow Meter": { main: "water-flow", extra: "water" }
-      };
-      for (let meter in flowMeterMapping) {
-         const prefixes = flowMeterMapping[meter];
-         const physical = fd.get(prefixes.main + "-physical") || "";
-         const system = fd.get(prefixes.main + "-system") || "";
-         flowMeters.push([meter, physical + " ml", system + " ml"]);
-         const pulseOld = fd.get(prefixes.extra + "-pulse-old") || "";
-         const pulseNew = fd.get(prefixes.extra + "-pulse-new") || "";
-         const newTestPhysical = fd.get(prefixes.extra + "-new-test-physical") || "";
-         const newSystemResult = fd.get(prefixes.extra + "-new-system-result") || "";
-         if(pulseOld || pulseNew || newTestPhysical || newSystemResult){
-           let extraLeft = "";
-           let extraRight = "";
-           if(pulseOld) extraLeft += "Pulse Old: " + pulseOld;
-           if(pulseNew) extraLeft += (extraLeft ? ", " : "") + "Pulse New: " + pulseNew;
-           if(newTestPhysical) extraRight += "Test Physical: " + newTestPhysical;
-           if(newSystemResult) extraRight += (extraRight ? ", " : "") + "System Result: " + newSystemResult;
-           flowMeters.push(["Calibration:", extraLeft, extraRight]);
-         }
-      }
+const flowMeterMapping = {
+  "Acid Flow Meter":  { main: "acid-flow",  extra: "acid"  },
+  "Chlor Alkali Flow Meter": { main: "chlor-flow", extra: "chlor" },
+  "Teat Concentrate Flow Meter": { main: "teat-flow",  extra: "teat"  },
+  "Water Flow Meter": { main: "water-flow", extra: "water" }
+};
+
+for (const meter of Object.keys(flowMeterMapping)) {
+  const prefixes = flowMeterMapping[meter];
+
+  // values from the form
+  const physical = (fd.get(prefixes.main + "-physical") || "").trim();
+  const system   = (fd.get(prefixes.main + "-system")   || "").trim();
+
+  // only push a meter row if at least one value exists
+  if (physical || system) {
+    const physStr = physical ? physical + " ml" : "";
+    const sysStr  = system   ? system   + " ml" : "";
+    flowMeters.push([meter, physStr, sysStr]);
+  }
+
+  // optional calibration details
+  const pulseOld        = (fd.get(prefixes.extra + "-pulse-old") || "").trim();
+  const pulseNew        = (fd.get(prefixes.extra + "-pulse-new") || "").trim();
+  const newTestPhysical = (fd.get(prefixes.extra + "-new-test-physical") || "").trim();
+  const newSystemResult = (fd.get(prefixes.extra + "-new-system-result") || "").trim();
+
+  if (pulseOld || pulseNew || newTestPhysical || newSystemResult) {
+    let extraLeft = "";
+    let extraRight = "";
+    if (pulseOld) extraLeft += "Pulse Old: " + pulseOld;
+    if (pulseNew) extraLeft += (extraLeft ? ", " : "") + "Pulse New: " + pulseNew;
+    if (newTestPhysical) extraRight += "Test Physical: " + newTestPhysical;
+    if (newSystemResult) extraRight += (extraRight ? ", " : "") + "System Result: " + newSystemResult;
+    flowMeters.push(["Calibration:", extraLeft, extraRight]);
+  }
+}
       
       Promise.all(imagePromises).then(() => {
         finalizePDF();
@@ -1013,7 +1025,17 @@ if (tsItem) {
         const pdf = new jsPDF("p", "pt", "a4");
         let currentY = 40;
         const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
+const pageHeight = pdf.internal.pageSize.getHeight();
+
+const topMargin = 40;
+const sideMargin = 40;
+const bottomMargin = 40;
+function ensureSpace(h) {
+  if (currentY + h > pageHeight - bottomMargin) {
+    pdf.addPage();
+    currentY = topMargin;
+  }
+}
         storage.ref("Agora Logo/2F6-1YdaEP.jpeg").getDownloadURL().then(url => {
           fetch(url)
             .then(res => res.blob())
@@ -1039,125 +1061,135 @@ if (tsItem) {
           addFarmDetailsAndTables(pdf);
         });
         
-        function addFarmDetailsAndTables(pdf) {
-          pdf.autoTable({
-            startY: currentY,
-            head: [["Farm Details", "", "", ""]],
-            body: farmDetailsRows,
-            theme: 'grid',
-            styles: { fontSize: 10, cellPadding: 5 },
-            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-            columnStyles: {
-              0: { cellWidth: leftColLabelWidth },
-              1: { cellWidth: leftColValueWidth },
-              2: { cellWidth: rightColLabelWidth, halign: 'right' },
-              3: { cellWidth: rightColValueWidth, halign: 'right' }
-            },
-            margin: { left: 40, right: 40 }
-          });
-          currentY = pdf.lastAutoTable.finalY + 20;
-          
-          pdf.autoTable({
-            startY: currentY,
-            head: [["Temperature Measurement", ""]],
-            body: tempMeasurementData,
-            styles: { fontSize: 10, cellPadding: 5 },
-            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-            margin: { left: 40, right: 40 }
-          });
-          currentY = pdf.lastAutoTable.finalY + 20;
-          
-          pdf.setFont("helvetica", "bold");
-          pdf.text("Checklist Items:", 40, currentY);
-          currentY += 10;
-          pdf.autoTable({
-            startY: currentY,
-            head: [["Item", "Status", "Comments"]],
-            body: checklistData,
-            styles: { fontSize: 10, cellPadding: 5 },
-            headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-            margin: { left: 40, right: 40 }
-          });
-          currentY = pdf.lastAutoTable.finalY + 20;
+function addFarmDetailsAndTables(pdf) {
+  // Farm Details
+  pdf.autoTable({
+    startY: currentY,
+    head: [["Farm Details", "", "", ""]],
+    body: farmDetailsRows,
+    theme: 'grid',
+    styles: { fontSize: 10, cellPadding: 5 },
+    headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+    columnStyles: {
+      0: { cellWidth: leftColLabelWidth },
+      1: { cellWidth: leftColValueWidth },
+      2: { cellWidth: rightColLabelWidth, halign: 'right' },
+      3: { cellWidth: rightColValueWidth, halign: 'right' }
+    },
+    margin: { left: sideMargin, right: sideMargin }
+  });
+  currentY = pdf.lastAutoTable.finalY + 20;
 
-          // --- Temperature Sensors section render (supports OK summary) ---
-          // --- Temperature Sensors section render ---
-if (tempSensorNote || tempSensorData.length > 0) {
+  // Temperature Measurement
+  pdf.autoTable({
+    startY: currentY,
+    head: [["Temperature Measurement", ""]],
+    body: tempMeasurementData,
+    styles: { fontSize: 10, cellPadding: 5 },
+    headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+    margin: { left: sideMargin, right: sideMargin }
+  });
+  currentY = pdf.lastAutoTable.finalY + 20;
+
+  // Checklist Items  (this was mislabeled as "Flow Meters:" in your file)
   pdf.setFont("helvetica", "bold");
-  pdf.text("Temperature Sensors:", 40, currentY);
+  ensureSpace(25);
+  pdf.text("Checklist Items:", sideMargin, currentY);
   currentY += 10;
+  pdf.autoTable({
+    startY: currentY,
+    head: [["Item", "Status", "Comments"]],
+    body: checklistData,
+    styles: { fontSize: 10, cellPadding: 5 },
+    headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+    margin: { left: sideMargin, right: sideMargin }
+  });
+  currentY = pdf.lastAutoTable.finalY + 20;
 
-  if (tempSensorNote) {
-    pdf.setFont("helvetica", "normal");
-    pdf.text(tempSensorNote, 40, currentY);
-    currentY += 15;
+  // Temperature Sensors
+  if (tempSensorNote || tempSensorData.length > 0) {
+    ensureSpace(30);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("Temperature Sensors:", sideMargin, currentY);
+    currentY += 14;
+
+    if (tempSensorNote) {
+      pdf.setFont("helvetica", "normal");
+      const wrapped = pdf.splitTextToSize(tempSensorNote, pageWidth - sideMargin * 2);
+      ensureSpace(wrapped.length * 12 + 6);
+      pdf.text(wrapped, sideMargin, currentY);
+      currentY += wrapped.length * 12 + 8;
+    }
+
+    if (tempSensorData.length > 0) {
+      pdf.autoTable({
+        startY: currentY,
+        head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
+        body: tempSensorData,
+        styles: { fontSize: 10, cellPadding: 5 },
+        headStyles: { fillColor: "#002B5C", textColor: "#fff" },
+        margin: { left: sideMargin, right: sideMargin }
+      });
+      currentY = pdf.lastAutoTable.finalY + 20;
+    }
   }
 
-  if (tempSensorData.length > 0) {
+  // Flow Meters (render the actual flowMeters table ONCE)
+  if (flowMeters.length > 0) {
+    pdf.setFont("helvetica", "bold");
+    ensureSpace(25);
+    pdf.text("Flow Meters:", sideMargin, currentY);
+    currentY += 10;
     pdf.autoTable({
       startY: currentY,
-      head: [["Sensor Type", "Tested Temp (°C)", "System Temp (°C)", "Comments"]],
-      body: tempSensorData,
+      head: [["Meter", "Physical Test", "System Read"]],
+      body: flowMeters,
       styles: { fontSize: 10, cellPadding: 5 },
       headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-      margin: { left: 40, right: 40 }
+      margin: { left: sideMargin, right: sideMargin }
     });
     currentY = pdf.lastAutoTable.finalY + 20;
   }
-}
-          
-          // --- end Temperature Sensors render ---
 
-          if (flowMeters.length > 0) {
-            pdf.setFont("helvetica", "bold");
-            pdf.text("Flow Meters:", 40, currentY);
-            currentY += 10;
-            pdf.autoTable({
-              startY: currentY,
-              head: [["Meter", "Physical Test", "System Read"]],
-              body: flowMeters,
-              styles: { fontSize: 10, cellPadding: 5 },
-              headStyles: { fillColor: "#002B5C", textColor: "#fff" },
-              margin: { left: 40, right: 40 }
-            });
-            currentY = pdf.lastAutoTable.finalY + 20;
+  // Photos
+  if (photoStore.length > 0) {
+    pdf.setFont("helvetica", "bold");
+    if (currentY + 20 > pageHeight) {
+      pdf.addPage();
+      currentY = topMargin;
+    }
+    pdf.text("Attached Photos:", sideMargin, currentY);
+    currentY += 20;
+
+    photoStore.forEach(photoItem => {
+      if (currentY + 15 > pageHeight) {
+        pdf.addPage();
+        currentY = topMargin;
+      }
+      pdf.setFont("helvetica", "bold");
+      pdf.text(photoItem.itemName, sideMargin, currentY);
+      currentY += 15;
+
+      let maxImgHeight = 0;
+      photoItem.images.forEach((img, idx) => {
+        try {
+          const imgProps = pdf.getImageProperties(img);
+          const imgWidth = 250;
+          const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+          if (currentY + imgHeight > pageHeight - bottomMargin) {
+            pdf.addPage();
+            currentY = topMargin;
           }
-          
-          if (photoStore.length > 0) {
-            pdf.setFont("helvetica", "bold");
-            if (currentY + 20 > pageHeight) {
-              pdf.addPage();
-              currentY = 40;
-            }
-            pdf.text("Attached Photos:", 40, currentY);
-            currentY += 20;
-            photoStore.forEach(photoItem => {
-              if (currentY + 15 > pageHeight) {
-                pdf.addPage();
-                currentY = 40;
-              }
-              pdf.setFont("helvetica", "bold");
-              pdf.text(photoItem.itemName, 40, currentY);
-              currentY += 15;
-              let maxImgHeight = 0;
-              photoItem.images.forEach((img, idx) => {
-                try {
-                  const imgProps = pdf.getImageProperties(img);
-                  const imgWidth = 250;
-                  const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-                  if (currentY + imgHeight > pageHeight) {
-                    pdf.addPage();
-                    currentY = 40;
-                  }
-                  pdf.addImage(img, "JPEG", 40 + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
-                  if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
-                } catch(e) {
-                  console.error("Error adding image:", e);
-                }
-              });
-              currentY += maxImgHeight + 20;
-            });
-          }
+          pdf.addImage(img, "JPEG", sideMargin + idx * (imgWidth + 10), currentY, imgWidth, imgHeight);
+          if (imgHeight > maxImgHeight) maxImgHeight = imgHeight;
+        } catch(e) {
+          console.error("Error adding image:", e);
+        }
+      });
+      currentY += maxImgHeight + 20;
+    });
+  }
+}
           
           (async function(){
             const pdfBlob = pdf.output("blob");
